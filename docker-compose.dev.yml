@@ -1,0 +1,58 @@
+# 開発用コンポウズ設定
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend/app:/app/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # node_modules をコンテナ内に閉じ込める
+    working_dir: /app
+    # 開発サーバー起動
+    command: ["npm", "run", "dev"]
+    # 開発モード
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true # ほっとリロード
+
+  db:
+    image: postgres:15
+    env_file:
+      - .env # .envファイルを参照（DB設定）
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5430:5432" # 外部公開ポート/コンテナ内部ポート
+
+  pgadmin: # pgadminをローカルにインストールしない場合のみ　ブラウザで確認できる
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    restart: unless-stopped # オプション：安定動作向け
+
+volumes:
+  pgdata:
+  pgadmin_data:

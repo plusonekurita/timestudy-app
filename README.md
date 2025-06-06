@@ -43,7 +43,7 @@
 
 ## 2. 開発用 Docker 環境を起動
 
-- docker compose up --build
+- docker compose -f docker-compose.dev.yml up --build
 
 - フロントエンド: http://localhost:5173
 - バックエンド: http://localhost:8000/docs
@@ -59,36 +59,27 @@
 
 ## 2. 本番用 Docker 環境を起動
 
-- docker compose -f docker-compose.prod.yml up --build -d
+- docker compose -p timestudy-prod up -d --build
 
 - フロントエンド: http://<サーバー IP>/
 - バックエンド API: http://<サーバー IP>:8000/docs
 
 # 本番環境の再ビルド（変更反映時）
 
-- docker compose -f docker-compose.prod.yml build
-- docker compose -f docker-compose.prod.yml up -d
+- docker compose -f docker-compose.yml build
+- docker compose -f docker-compose.yml up -d
 
-# Docker コマンド
+# Docker コマンド（開発環境）
 
-- docker compose down # 開発環境を止める
-- docker compose up --build # 開発環境を再起動
-- docker compose -f docker-compose.prod.yml down # 本番環境を停止
-- docker compose -f docker-compose.prod.yml up -d # 本番環境を再起動
-- docker compose ps # コンテナの状態確認
-- docker compose logs -f frontend # フロントのログ確認
+- docker compose -f docker-compose.dev.yml down # 開発環境を停止
+- docker compose -f docker-compose.dev.yml up -d --build # 開発環境を起動
+- docker compose -f docker-compose.dev.yml ps # コンテナの状態確認
+- docker compose -f docker-compose.dev.yml logs -f # コンテナのログ確認
 
-## ※コンテナを分けて起動したい場合
+# Docker コマンド（本番環境）
 
-### 開発
-
--docker compose -p timestudy-dev up --build # 起動
--docker compose -p timestudy-dev down # 停止
-
-### 本番
-
--docker compose -p timestudy-prod -f docker-compose.prod.yml up -d --build # 起動
--docker compose -p timestudy-prod -f docker-compose.prod.yml down # 停止
+- docker compose -p timestudy-prod up -d --build 　# 本番環境を起動
+- docker compose -p timestudy-prod down # 本番環境を停止
 
 # 開発環境ライブラリ追加手順(バックエンド)
 
