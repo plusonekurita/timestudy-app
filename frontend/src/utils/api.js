@@ -2,6 +2,8 @@
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
+console.log(API_BASE);
+
 /**
  * API通信を行う共通関数
  * @param {string} path - APIのパス（例：/get-time-records）
