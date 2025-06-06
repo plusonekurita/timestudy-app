@@ -1,0 +1,33 @@
+services:
+  backend:
+    container_name: backend-prod
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    container_name: frontend-prod
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "80:80"
+
+  db:
+    image: postgres:15
+    container_name: db-prod
+    env_file:
+      - .env # .envファイルを参照
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5431:5432"
+
+volumes:
+  pgdata:
