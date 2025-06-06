@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import dayjs from "dayjs";
 
 import { showSnackbar } from "../store/slices/snackbarSlice";
+import { apiFetch } from "../utils/api";
 
 export const useFetchRecords = (startDate, endDate) => {
   const [records, setRecords] = useState([]);
@@ -25,18 +26,13 @@ export const useFetchRecords = (startDate, endDate) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const accessToken = localStorage.getItem("access_token");
-        const res = await fetch("/api/get-time-records", {
+        const res = await apiFetch("/get-time-records", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
+          body: {
             user_id: localStorage.getItem("userId"),
             start_date: startKey,
             end_date: endKey,
-          }),
+          },
         });
 
         if (!res.ok) throw new Error("記録取得に失敗しました");

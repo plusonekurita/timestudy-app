@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 
 import { showSnackbar } from "../store/slices/snackbarSlice";
 import { menuCategories } from "../constants/menu";
+import { apiFetch } from "../utils/api";
 
 // メタ情報取得
 const getActivityMeta = (type, name) => {
@@ -53,18 +54,13 @@ export const useTimelineRecords = (date) => {
       } else {
         // DBから取得
         try {
-          const accessToken = localStorage.getItem("access_token");
-          const res = await fetch("/api/get-time-records", {
+          const res = await apiFetch("/get-time-records", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({
+            body: {
               user_id: localStorage.getItem("userId"),
               start_date: dateKey,
               end_date: dateKey,
-            }),
+            },
           });
 
           if (!res.ok) throw new Error("記録取得失敗");

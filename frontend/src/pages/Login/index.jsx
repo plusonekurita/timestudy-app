@@ -7,6 +7,7 @@ import { getValue, setItem } from "../../utils/localStorageUtils";
 import { showSnackbar } from "../../store/slices/snackbarSlice";
 import { login } from "../../store/slices/authSlice";
 import { colors } from "../../constants/theme";
+import { apiFetch } from "../../utils/api";
 import LoginForm from "./LoginForm";
 
 const updateThemeColor = (color) => {
@@ -49,20 +50,15 @@ const LoginPage = () => {
       } else {
         // 当日以外の記録をDBに保存
         try {
-          const accessToken = getValue("access_token");
           const userId = getValue("userId");
 
-          const response = await fetch("/api/save-time-records", {
+          const response = await apiFetch("/save-time-records", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`, // 必要なら
-            },
-            body: JSON.stringify({
+            body: {
               user_id: userId,
-              record_date: dateKey,
-              record: allDailyRecords[dateKey],
-            }),
+              start_date: startKey,
+              end_date: endKey,
+            },
           });
 
           if (!response.ok) {
@@ -97,10 +93,9 @@ const LoginPage = () => {
   // LoginForm: ログイン試行関数
   const handleLoginAttempt = async (uid, password) => {
     try {
-      const response = await fetch("/api/login", {
+      const response = await apiFetch("/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid, password }),
+        body: { uid, password },
       });
 
       if (!response.ok) {
