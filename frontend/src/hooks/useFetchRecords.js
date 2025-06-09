@@ -26,7 +26,7 @@ export const useFetchRecords = (startDate, endDate) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await apiFetch("/get-time-records", {
+        const data = await apiFetch("/get-time-records", {
           method: "POST",
           body: {
             user_id: localStorage.getItem("userId"),
@@ -35,9 +35,6 @@ export const useFetchRecords = (startDate, endDate) => {
           },
         });
 
-        if (!res.ok) throw new Error("記録取得に失敗しました");
-
-        const data = await res.json();
         if (data.records?.length === 0) {
           setRecords([]);
           dispatch(

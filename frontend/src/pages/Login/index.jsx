@@ -52,7 +52,7 @@ const LoginPage = () => {
         try {
           const userId = getValue("userId");
 
-          const response = await apiFetch("/save-time-records", {
+          await apiFetch("/save-time-records", {
             method: "POST",
             body: {
               user_id: userId,
@@ -61,12 +61,8 @@ const LoginPage = () => {
             },
           });
 
-          if (!response.ok) {
-            throw new Error("DB保存に失敗");
-          }
-
           // 成功したらローカルから削除
-          console.log(`${dateKey} の記録をDBに保存しました`);
+          // console.log(`${dateKey} の記録をDBに保存しました`);
         } catch (err) {
           console.error(`${dateKey} の記録保存に失敗:`, err);
           dispatch(
@@ -93,16 +89,10 @@ const LoginPage = () => {
   // LoginForm: ログイン試行関数
   const handleLoginAttempt = async (uid, password) => {
     try {
-      const response = await apiFetch("/login", {
+      const data = await apiFetch("/login", {
         method: "POST",
         body: { uid, password },
       });
-
-      if (!response.ok) {
-        throw new Error("ログイン失敗");
-      }
-
-      const data = await response.json();
 
       // アクセストークンを保存
       setItem("access_token", data.access_token);

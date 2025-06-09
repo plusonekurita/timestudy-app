@@ -54,7 +54,7 @@ export const useTimelineRecords = (date) => {
       } else {
         // DBから取得
         try {
-          const res = await apiFetch("/get-time-records", {
+          const data = await apiFetch("/get-time-records", {
             method: "POST",
             body: {
               user_id: localStorage.getItem("userId"),
@@ -63,9 +63,6 @@ export const useTimelineRecords = (date) => {
             },
           });
 
-          if (!res.ok) throw new Error("記録取得失敗");
-
-          const data = await res.json();
           const fetchedRecords = data.records?.[0]?.record || [];
 
           if (fetchedRecords.length === 0) {
