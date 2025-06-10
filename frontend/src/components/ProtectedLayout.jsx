@@ -36,6 +36,7 @@ const ProtectedLayout = () => {
   const currentIndex = navItems.findIndex((item) =>
     location.pathname.startsWith(item.path)
   );
+  const isAdminPage = location.pathname.startsWith("/admin");
 
   // 認証済み
   // 共通ヘッダーなどを配置できる
@@ -65,36 +66,39 @@ const ProtectedLayout = () => {
           flexGrow: 1, // 残りの高さをすべて使用
           overflowY: "auto",
           pt: HEADER_HEIGHT, // 固定ヘッダーの高さ分だけ上部にパディングを設定
-          pb: FOOTER_HEIGHT, // BottomNavigation の高さ分の余白
+          pb: isAdminPage ? 0 : FOOTER_HEIGHT, // BottomNavigation の高さ分の余白
           width: "100%", // 幅を100%に
           // overflowY: 'auto', // 必要に応じてメインコンテンツエリアのみスクロールさせる場合
         }}
       >
         <Outlet /> {/* ここに各ページのコンテンツが表示されます */}
       </Box>
-      {/* フッター */}
-      <BottomNavigation
-        showLabels
-        value={currentIndex}
-        onChange={(event, newValue) => navigate(navItems[newValue].path)}
-        sx={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: FOOTER_HEIGHT,
-          borderTop: `1px solid ${theme.palette.divider}`,
-          zIndex: theme.zIndex.appBar,
-        }}
-      >
-        {navItems.map((item) => (
-          <BottomNavigationAction
-            key={item.label}
-            label={item.label}
-            icon={item.icon}
-          />
-        ))}
-      </BottomNavigation>
+
+      {/* フッター ※管理画面は非表示 */}
+      {!isAdminPage && (
+        <BottomNavigation
+          showLabels
+          value={currentIndex}
+          onChange={(event, newValue) => navigate(navItems[newValue].path)}
+          sx={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: FOOTER_HEIGHT,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            zIndex: theme.zIndex.appBar,
+          }}
+        >
+          {navItems.map((item) => (
+            <BottomNavigationAction
+              key={item.label}
+              label={item.label}
+              icon={item.icon}
+            />
+          ))}
+        </BottomNavigation>
+      )}
     </Box>
   );
 };

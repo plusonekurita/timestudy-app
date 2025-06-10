@@ -41,6 +41,7 @@ const LoginPage = () => {
     const todayKey = new Date().toISOString().split("T")[0];
     const allDailyRecords = getValue(`dailyTimeStudyRecords_${userId}`, {});
     const remainingRecords = {};
+    let saveCount = 0; // 保存件数をカウント
 
     // 本日以外の記録だけを抽出してサーバーに送るための準備処理
     for (const dateKey in allDailyRecords) {
@@ -61,8 +62,7 @@ const LoginPage = () => {
             },
           });
 
-          // 成功したらローカルから削除
-          // console.log(`${dateKey} の記録をDBに保存しました`);
+          saveCount++; // 保存成功したらカウント
         } catch (err) {
           console.error(`${dateKey} の記録保存に失敗:`, err);
           dispatch(
@@ -78,12 +78,14 @@ const LoginPage = () => {
 
     // すべて成功したらローカルを更新
     setItem(`dailyTimeStudyRecords_${userId}`, remainingRecords);
-    dispatch(
-      showSnackbar({
-        message: "過去の記録をすべてサーバーに保存しました。",
-        severity: "info",
-      })
-    );
+    if (saveCount > 0) {
+      dispatch(
+        showSnackbar({
+          message: "過去の記録をすべてサーバーに保存しました。",
+          severity: "info",
+        })
+      );
+    }
   };
 
   // LoginForm: ログイン試行関数
@@ -95,10 +97,11 @@ const LoginPage = () => {
       });
 
       // アクセストークンを保存
-      setItem("access_token", data.access_token);
+      localStorage.setItem("access_token", data.access_token);
       setItem("userId", data.id);
       setItem("userName", data.name);
       setItem("version", data.version);
+      setItem("role", data.role);
 
       dispatch(
         showSnackbar({
@@ -114,14 +117,22 @@ const LoginPage = () => {
         })
       );
 
-      await processOldRecords(data.id);
-      navigate("/main");
+      if (data.role !== "admin") {
+        await processOldRecords(data.id);
+      }
+
+      // 管理者なら admin ページへ遷移
+      if (data.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/main");
+      }
       return true;
-    } catch {
+    } catch (err) {
+      console.log(err);
       dispatch(
         showSnackbar({
-          message:
-            "ログインに失敗しました。UIDまたはパスワードをご確認ください。",
+          message: err.message,
           severity: "error",
         })
       );

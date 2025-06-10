@@ -1,8 +1,6 @@
 // src/utils/api.js
 
-const API_BASE = "https://timestudy-app-backend.onrender.com/api";
-
-console.log(API_BASE);
+const API_BASE = "/api";
 
 /**
  * API通信を行う共通関数
@@ -25,20 +23,42 @@ export const apiFetch = async (path, options = {}) => {
     }
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: finalHeaders,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers: finalHeaders,
+      body: body ? JSON.stringify(body) : undefined,
+    });
 
-  if (!res.ok) {
-    let errorMessage = "API Error";
-    try {
-      const err = await res.json();
-      errorMessage = err.message || errorMessage;
-    } catch (_) {}
-    throw new Error(errorMessage);
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      let message = "API Error";
+      if (res.status === 404) {
+        message = "指定されたAPIエンドポイントが見つかりません。";
+      } else if (data?.detail) {
+        if (typeof data.detail === "string") {
+          message = data.detail;
+        } else if (typeof data.detail === "object") {
+          message = `${data.detail.error || ""}: ${data.detail.detail || ""}`;
+        }
+      } else if (data?.error) {
+        message = data.error;
+      } else {
+        message = res.statusText;
+      }
+
+      throw new Error(message);
+    }
+
+    return data;
+  } catch (err) {
+    if (err.name === "TypeError") {
+      // ネットワーク障害やCORSなど
+      throw new Error(
+        "通信エラーが発生しました。ネットワークをご確認ください。"
+      );
+    }
+    throw err;
   }
-
-  return res.json();
 };

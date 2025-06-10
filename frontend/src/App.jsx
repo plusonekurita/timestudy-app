@@ -15,6 +15,7 @@ import { logout } from "./store/slices/authSlice";
 import TimelineView from "./pages/Timeline";
 import RecordsPage from "./pages/Record";
 import LoginPage from "./pages/Login";
+import AdminPage from "./pages/Admin";
 import MainPage from "./pages/Main";
 
 // アイドルタイマーの設定時間 TODO: タイムスタディなので必要なのか検討
@@ -80,6 +81,7 @@ function App() {
           {/* 認証が必要なページ*/}
           <Route element={<ProtectedLayout />}>
             <Route path="/main" element={<MainPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="/timeline" element={<TimelineView />} />
             <Route path="/records" element={<RecordsPage />} />
             {/* ここにページを追加 */}
