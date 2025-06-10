@@ -1,12 +1,13 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import BarChartIcon from "@mui/icons-material/BarChart";
+import {
+  Brightness1 as BasicIcon,
+  Diamond as ProIcon,
+  Person as PersonIcon,
+  Logout as LogoutIcon,
+} from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import PersonIcon from "@mui/icons-material/Person";
-import LogoutIcon from "@mui/icons-material/Logout";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import localeData from "dayjs/plugin/localeData";
-import HomeIcon from "@mui/icons-material/Home";
 import MenuItem from "@mui/material/MenuItem";
 import Toolbar from "@mui/material/Toolbar";
 import Divider from "@mui/material/Divider";
@@ -23,14 +24,15 @@ dayjs.locale(ja);
 dayjs.extend(localeData);
 
 import { logout } from "../store/slices/authSlice";
+import { getValue } from "../utils/localStorageUtils";
+import { colors } from "../constants/theme";
 
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
   const { userName } = useSelector((state) => state.auth);
   const today = dayjs().format("YYYY年M月D日（ddd）");
+  const status = getValue("varsion");
 
   const handleOpenUserMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -44,28 +46,22 @@ const Header = () => {
     dispatch(logout());
   };
 
-  // 記録ページへ遷移
-  const handleNavigateToRecords = () => {
-    navigate("/records");
-    handleCloseUserMenu();
-  };
+  const getStatusLabel = () => {
+    const icon =
+      status === 0 ? (
+        <BasicIcon fontSize="small" sx={{ color: colors.basic }} />
+      ) : (
+        <ProIcon fontSize="small" sx={{ color: colors.pro }} />
+      );
+    const label = status === 0 ? "Basic" : "Pro";
 
-  // ホーム画面へ遷移
-  const handleNavigateToHome = () => {
-    navigate("/main");
-    handleCloseUserMenu();
+    return (
+      <Box display="flex" alignItems="center" gap={0.5}>
+        {icon}
+        <span>{label}</span>
+      </Box>
+    );
   };
-
-  const getMenuItemProps = (path) => ({
-    disabled: location.pathname === path, // 現在のパスと一致すれば選択負荷
-    sx: {
-      ...(location.pathname === path && {
-        backgroundColor: "action.selected",
-        fontWeight: "bold",
-      }),
-      mr: 1,
-    },
-  });
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -112,20 +108,7 @@ const Header = () => {
                 },
               }}
             >
-              <MenuItem
-                onClick={handleNavigateToHome}
-                {...getMenuItemProps("/main")}
-              >
-                <HomeIcon sx={getMenuItemProps("/main").sx} />
-                ホーム
-              </MenuItem>
-              <MenuItem
-                onClick={handleNavigateToRecords}
-                {...getMenuItemProps("/records")}
-              >
-                <BarChartIcon sx={getMenuItemProps("/records").sx} />
-                記録確認
-              </MenuItem>
+              <MenuItem>{getStatusLabel()}</MenuItem>
               <Divider />
               <MenuItem onClick={handleLogout}>
                 <LogoutIcon sx={{ mr: 1 }} />

@@ -18,4 +18,8 @@ export const colors = {
   indirectWorkBackground: "rgba(39, 174, 96, 0.1)",
   breakBackground: "rgba(241, 196, 15, 0.1)",
   otherBackground: "rgba(129, 129, 129, 0.1)",
+
+  // プランカラー
+  pro: "#2196F3", // #E0F7FA
+  basic: "#607D8B",
 };
