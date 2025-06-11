@@ -57,8 +57,8 @@ const LoginPage = () => {
             method: "POST",
             body: {
               user_id: userId,
-              start_date: startKey,
-              end_date: endKey,
+              record_date: dateKey,
+              record: allDailyRecords[dateKey],
             },
           });
 
