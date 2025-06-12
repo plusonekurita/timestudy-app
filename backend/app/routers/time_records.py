@@ -38,7 +38,7 @@ def create_time_record(request: TimeRecordRequest, db: Session = Depends(get_db)
 
         if existing:
             # 既存レコードがある場合 → 上書き更新
-            existing.record = [r.dict() for r in request.record]
+            existing.record = [r.model_dump() for r in request.record]
             db.commit()
             db.refresh(existing)
             return {"message": "Time record updated", "id": existing.id}
@@ -47,7 +47,7 @@ def create_time_record(request: TimeRecordRequest, db: Session = Depends(get_db)
             new_record = TimeRecord(
                 user_id=request.user_id,
                 record_date=request.record_date,
-                record=[r.dict() for r in request.record]
+                record=[r.model_dump() for r in request.record]
             )
             db.add(new_record)
             db.commit()

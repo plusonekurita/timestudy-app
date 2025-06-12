@@ -91,42 +91,63 @@ const LoginPage = () => {
   // LoginForm: ログイン試行関数
   const handleLoginAttempt = async (uid, password) => {
     try {
-      const data = await apiFetch("/login", {
-        method: "POST",
-        body: { uid, password },
-      });
+      const mockUsers = {
+        demo: {
+          id: 2,
+          name: "デモユーザー",
+          version: "1",
+          role: "user",
+          password: "1964101001",
+        },
+        plusone: {
+          id: 3,
+          name: "プラスワン",
+          version: "1",
+          role: "user",
+          password: "1964101001",
+        },
+        // admin: {
+        //   id: 1,
+        //   name: "管理者",
+        //   version: "1",
+        //   role: "admin",
+        //   password: "1964101001",
+        // },
+      };
+
+      const user = mockUsers[uid];
+
+      if (!user || user.password !== password) {
+        throw new Error("ユーザーIDまたはパスワードが間違っています。");
+      }
 
       // アクセストークンを保存
-      localStorage.setItem("access_token", data.access_token);
-      setItem("userId", data.id);
-      setItem("userName", data.name);
-      setItem("version", data.version);
-      setItem("role", data.role);
+      localStorage.setItem("access_token", "dummy-token");
+      setItem("userId", user.id);
+      setItem("userName", user.name);
+      setItem("version", user.version);
+      setItem("role", user.role);
 
       dispatch(
         showSnackbar({
-          message: `ようこそ ${data.name} さん`,
+          message: `ようこそ ${user.name} さん`,
           severity: "success",
         })
       );
       dispatch(
         login({
-          id: data.id,
-          name: data.name,
-          version: data.version,
+          id: user.id,
+          name: user.name,
+          version: user.version,
         })
       );
 
-      if (data.role !== "admin") {
-        await processOldRecords(data.id);
+      if (user.role !== "admin") {
+        await processOldRecords(user.id);
       }
 
       // 管理者なら admin ページへ遷移
-      if (data.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/main");
-      }
+      navigate(user.role === "admin" ? "/admin" : "/main");
       return true;
     } catch (err) {
       console.log(err);

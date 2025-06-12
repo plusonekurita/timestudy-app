@@ -19,4 +19,3 @@ class User(Base):
 
     version: Mapped[int] = mapped_column(Integer, default=0)  # 0=free, 1=pro
     role: Mapped[str] = mapped_column(String, default="user")
-    last_login: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(JST))

@@ -4,16 +4,18 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useIdleTimer } from "react-idle-timer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import NotificationSnackbar from "./components/NotificationSnackbar";
 import { StopwatchProvider } from "./constants/StopwatchProvider ";
 import IdleTimeoutDialog from "./components/IdleTimeoutDialog";
+import { showSnackbar } from "./store/slices/snackbarSlice";
 import { hideSnackbar } from "./store/slices/snackbarSlice";
 import ProtectedLayout from "./components/ProtectedLayout";
 import { logout } from "./store/slices/authSlice";
 import TimelineView from "./pages/Timeline";
 import RecordsPage from "./pages/Record";
+import { apiFetch } from "./utils/api";
 import LoginPage from "./pages/Login";
 import AdminPage from "./pages/Admin";
 import MainPage from "./pages/Main";
@@ -25,6 +27,26 @@ const IDLE_TIMEOUT = 30 * 60 * 10000; // 30分
 function App() {
   const dispatch = useDispatch();
   const [isIdleModalOpen, setIsIdleModalOpen] = useState(false);
+
+  // バックエンドへの接続確認
+  useEffect(() => {
+    const pingBackend = async () => {
+      try {
+        await apiFetch("/ping");
+        console.log("Backend pinged successfully.");
+      } catch (error) {
+        console.warn("Backend ping failed:", error.message);
+        dispatch(
+          showSnackbar({
+            message: "バックエンドへの接続に失敗しました",
+            severity: "warning",
+          })
+        );
+      }
+    };
+
+    pingBackend();
+  }, []);
 
   // ルートパスのリダイレクト用に認証状態を取得
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);

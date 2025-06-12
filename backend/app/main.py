@@ -42,7 +42,12 @@ Base.metadata.create_all(bind=engine)
 # 管理者ユーザーの自動作成
 create_admin_user()
 
-# ✅ APIエンドポイントを /api/* に統一
+# APIエンドポイントを /api/* に統一
 app.include_router(auth.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(time_records.router, prefix="/api")
+
+# Render スリープ対策用の軽量エンドポイント
+@app.get("/api/ping")
+async def ping():
+    return {"status": "ok"}

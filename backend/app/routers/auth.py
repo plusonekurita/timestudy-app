@@ -32,7 +32,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
 
         if not bcrypt.verify(request.password, user.password):
             raise ApiException(401, "認証エラー", "パスワードが一致しません")
-        
+
         user.last_login = datetime.now(JST)
         db.commit()
 
