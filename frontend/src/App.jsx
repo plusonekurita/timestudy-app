@@ -12,7 +12,7 @@ import IdleTimeoutDialog from "./components/IdleTimeoutDialog";
 import { showSnackbar } from "./store/slices/snackbarSlice";
 import { hideSnackbar } from "./store/slices/snackbarSlice";
 import ProtectedLayout from "./components/ProtectedLayout";
-import { logout } from "./store/slices/authSlice";
+import { performLogout } from "./utils/auth";
 import TimelineView from "./pages/Timeline";
 import RecordsPage from "./pages/Record";
 import { apiFetch } from "./utils/api";
@@ -21,8 +21,9 @@ import AdminPage from "./pages/Admin";
 import MainPage from "./pages/Main";
 
 // アイドルタイマーの設定時間 TODO: タイムスタディなので必要なのか検討
-const IDLE_TIMEOUT = 30 * 60 * 10000; // 30分
-// const IDLE_TIMEOUT = 5 * 1000; // 10秒 テスト用
+const IDLE_TIMEOUT = 6 * 60 * 60 * 1000; // 6時間
+// const IDLE_TIMEOUT = 30 * 60 * 10000; // 30分
+// const IDLE_TIMEOUT = 10 * 1000; // 10秒 テスト用
 
 function App() {
   const dispatch = useDispatch();
@@ -51,11 +52,6 @@ function App() {
   // ルートパスのリダイレクト用に認証状態を取得
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
-  // 前日の記録をリセットする関数
-  // useEffect(() => {
-  //   checkAndResetTimeStudyRecords();
-  // }, []);
-
   // 通知バーの状態を取得
   const {
     open: snackbarOpen,
@@ -73,7 +69,7 @@ function App() {
   // モーダルの確認ボタン（ログアウト処理）
   const handleLogoutConfirm = () => {
     // ログアウトし、モーダルを閉じる
-    dispatch(logout());
+    performLogout(dispatch);
     setIsIdleModalOpen(false);
   };
 

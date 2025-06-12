@@ -1,3 +1,4 @@
+// 値を取得
 export const getValue = (key, defaultValue = null) => {
   try {
     const item = localStorage.getItem(key);
@@ -16,6 +17,7 @@ export const getValue = (key, defaultValue = null) => {
   }
 };
 
+// 値を保存
 export const setItem = (key, value) => {
   try {
     const stringifiedValue = JSON.stringify(value);
@@ -27,5 +29,19 @@ export const setItem = (key, value) => {
       error
     );
     return false; // 保存失敗
+  }
+};
+
+// 値を削除
+export const removeItem = (key) => {
+  try {
+    localStorage.removeItem(key);
+    return true;
+  } catch (error) {
+    console.error(
+      `ローカルストレージからの削除に失敗しました (キー: ${key}):`,
+      error
+    );
+    return false;
   }
 };

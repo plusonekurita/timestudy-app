@@ -4,12 +4,8 @@ import "./style.css";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import SpeedDialAction from "@mui/material/SpeedDialAction";
-import TimelineIcon from "@mui/icons-material/Timeline";
-import SpeedDialIcon from "@mui/material/SpeedDialIcon";
 // import SmartToyIcon from "@mui/icons-material/SmartToy"; // AI判定アイコン
 import { Typography, IconButton } from "@mui/material";
-import SpeedDial from "@mui/material/SpeedDial";
 import React, { useState } from "react";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
@@ -25,7 +21,6 @@ import CategorySummaryList from "./CategorySummaryList";
 import TimelineView from "./TimelineView";
 
 const RecordsPage = () => {
-  const [openSpeedDial, setOpenSpeedDial] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false); // タイムライン表示状態
   const [startDate, setStartDate] = useState(dayjs());
   const [endDate, setEndDate] = useState(dayjs());
@@ -38,31 +33,6 @@ const RecordsPage = () => {
     startDate,
     endDate
   );
-
-  // ボタンアクションを開く
-  const handleSpeedDialOpen = () => setOpenSpeedDial(true);
-  // ボタンアクションを閉じる
-  const handleSpeedDialClose = () => setOpenSpeedDial(false);
-
-  // ボタンアクション一覧
-  const speedDialActions = [
-    {
-      icon: <TimelineIcon />,
-      name: "タイムライン",
-      handleClick: () => {
-        setShowTimeline(true);
-        handleSpeedDialClose(); // ボタンアクションを閉じる
-      },
-    },
-    // {
-    //   icon: <SmartToyIcon />,
-    //   name: "AI判定",
-    //   handleClick: () => {
-    //     console.log("AI Judge action clicked");
-    //     // TODO: AI判定処理を実装
-    //   },
-    // },
-  ];
 
   // カレンダー操作
   const handleStartDateChange = (newStart) => {
@@ -142,27 +112,6 @@ const RecordsPage = () => {
           )}
         </>
       )}
-
-      {/* {!showTimeline && (
-        <SpeedDial
-          ariaLabel="Record Page Actions"
-          sx={{ position: "fixed", bottom: 16, right: 16 }}
-          icon={<SpeedDialIcon />}
-          onClose={handleSpeedDialClose}
-          onOpen={handleSpeedDialOpen}
-          open={openSpeedDial}
-        >
-          {speedDialActions.map((action) => (
-            <SpeedDialAction
-              key={action.name}
-              icon={action.icon}
-              tooltipTitle={action.name}
-              tooltipOpen
-              onClick={action.handleClick} // handleClick内でSpeedDialCloseが呼ばれる想定
-            />
-          ))}
-        </SpeedDial>
-      )} */}
     </Box>
   );
 };

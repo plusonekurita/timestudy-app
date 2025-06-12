@@ -28,7 +28,7 @@ const CategorySummaryList = ({ summaryData }) => {
           key={index}
           sx={{ mb: 1, pl: 1, pr: 1, justifyContent: "space-between" }}
         >
-          <Grid item xs={4} sx={{ display: "flex", alignItems: "center" }}>
+          <Grid size={4} sx={{ display: "flex", alignItems: "center" }}>
             <Box
               sx={{
                 mr: 1,
@@ -42,7 +42,7 @@ const CategorySummaryList = ({ summaryData }) => {
               {item.label}
             </Typography>
           </Grid>
-          <Grid item xs={4}>
+          <Grid size={4}>
             <Typography
               variant="body2"
               sx={{ textAlign: "right", color: colors.textDark }}
@@ -50,7 +50,7 @@ const CategorySummaryList = ({ summaryData }) => {
               {formatDurationFromMinutes(item.durationMinutes)}
             </Typography>
           </Grid>
-          <Grid item xs={4}>
+          <Grid size={4}>
             <Typography variant="body2" sx={{ textAlign: "right" }}>
               {item.percentage}%
             </Typography>
