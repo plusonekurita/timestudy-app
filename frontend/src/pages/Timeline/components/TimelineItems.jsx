@@ -47,20 +47,24 @@ const TimelineItems = ({ grouped }) => {
                   borderLeft: `8px solid ${item.color || "#2196f3"}`,
                   boxSizing: "border-box",
                   paddingRight: "6px",
+                  paddingLeft: "6px",
                 }}
                 elevation={0}
               >
                 {item.icon && (
                   <Box
+                    className="icon-wrapper"
                     sx={{
                       width: 35,
                       height: 35,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      "& svg": {
-                        color: "#fff",
-                        fontSize: 28,
+                      backgroundColor: item.color || "#999", // 円の背景色
+                      borderRadius: "50%", // 円形
+                      "& img": {
+                        width: "25px",
+                        height: "25px",
                       },
                     }}
                   >

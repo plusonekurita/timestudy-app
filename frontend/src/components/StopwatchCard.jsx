@@ -46,10 +46,14 @@ const StopwatchCard = ({
                 mr: 1,
                 display: "flex",
                 alignItems: "center",
-                // "& .MuiSvgIcon-root": { fontSize: "24px" },
-                // "& img": { width: "24px", height: "24px" },
-                width: "35px",
-                height: "35px",
+                "& img": {
+                  width: "35px",
+                  height: "35px",
+                },
+                "& svg": {
+                  width: "35px",
+                  height: "35px",
+                },
               }}
             >
               {icon}
