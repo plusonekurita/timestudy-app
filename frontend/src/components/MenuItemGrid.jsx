@@ -70,6 +70,14 @@ const MenuItemGrid = ({ items, activeItem, onItemClick, categoryType }) => {
                       borderBottomLeftRadius: 6,
                       padding: "12px 5px 12px 5px",
                       color: "white", // アイコン色例
+                      "& img": {
+                        width: "35px",
+                        height: "35px",
+                      },
+                      "& svg": {
+                        width: "35px",
+                        height: "35px",
+                      },
                     }}
                   >
                     {item.icon}
