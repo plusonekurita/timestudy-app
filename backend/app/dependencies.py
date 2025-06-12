@@ -8,10 +8,8 @@ from app.models.user import User
 from app.db.database import get_db
 
 # SECRET_KEY = os.getenv("SECRET_KEY", "changeme")
-print(jwt.__name__)
 SECRET_KEY = "changeme"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
-print(SECRET_KEY)
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     print("受信トークン:", token)  # 追加

@@ -15,7 +15,6 @@ JST = timezone(timedelta(hours=9))
 router = APIRouter()
 # SECRET_KEY = os.getenv("SECRET_KEY", "changeme")
 SECRET_KEY = "changeme"
-print(SECRET_KEY)
 
 class LoginRequest(BaseModel):
     uid: str
