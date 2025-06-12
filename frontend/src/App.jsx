@@ -7,7 +7,7 @@ import { useIdleTimer } from "react-idle-timer";
 import { useState, useEffect } from "react";
 
 import NotificationSnackbar from "./components/NotificationSnackbar";
-import { StopwatchProvider } from "./constants/StopwatchProvider ";
+import { StopwatchProvider } from "./constants/StopwatchProvider";
 import IdleTimeoutDialog from "./components/IdleTimeoutDialog";
 import { showSnackbar } from "./store/slices/snackbarSlice";
 import { hideSnackbar } from "./store/slices/snackbarSlice";
