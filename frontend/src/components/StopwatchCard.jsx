@@ -89,7 +89,7 @@ const StopwatchCard = ({
 
         {/* 一時停止・再生ボタン */}
         <Box>
-          <IconButton
+          {/* <IconButton
             aria-label={isRunning ? "pause" : "resume"}
             onClick={isRunning ? onPause : onResume} // 状態に応じてハンドラを切り替え
             color="primary"
@@ -100,7 +100,7 @@ const StopwatchCard = ({
             ) : (
               <PlayCircleIcon fontSize="large" />
             )}
-          </IconButton>
+          </IconButton> */}
           <IconButton
             aria-label="stop"
             onClick={onStop}
