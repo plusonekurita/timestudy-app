@@ -23,25 +23,30 @@ import dayjs from "dayjs";
 dayjs.locale(ja);
 dayjs.extend(localeData);
 
-import { logout } from "../store/slices/authSlice";
+import { performLogout } from "../utils/auth";
 import { colors } from "../constants/theme";
 
+// ヘッダーコンポーネント
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const dispatch = useDispatch();
   const { userName, version } = useSelector((state) => state.auth);
   // const today = dayjs().format("YYYY年M月D日（ddd）"); // ヘッダーに日付を入れる場合
 
+  // メニューを開く
   const handleOpenUserMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
+  // メニューを閉じる
   const handleCloseUserMenu = () => {
     setAnchorEl(null);
   };
 
+  // ログアウト処理
   const handleLogout = () => {
-    dispatch(logout());
+    performLogout(dispatch); // ログアウト
+    handleCloseUserMenu(); // メニューを閉じる
   };
 
   const getStatusLabel = () => {
