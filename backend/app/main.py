@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth, time_records, admin
+from app.routers import auth, time_records, admin, ws
 from app.db.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -46,3 +46,4 @@ create_admin_user()
 app.include_router(auth.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(time_records.router, prefix="/api")
+app.include_router(ws.router)

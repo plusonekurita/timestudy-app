@@ -103,7 +103,7 @@ const LoginPage = () => {
       localStorage.setItem("access_token", data.access_token);
       const user = {
         id: data.id,
-        userId: data.uid,
+        uid: data.uid,
         userName: data.name,
         version: data.version,
         role: data.role,

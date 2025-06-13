@@ -12,7 +12,6 @@ import { StopwatchProvider } from "./constants/StopwatchProvider";
 import IdleTimeoutDialog from "./components/IdleTimeoutDialog";
 import { hideSnackbar } from "./store/slices/snackbarSlice";
 import ProtectedLayout from "./components/ProtectedLayout";
-import useWebSocket from "./hooks/useWebSocket";
 import { performLogout } from "./utils/auth";
 import TimelineView from "./pages/Timeline";
 import RecordsPage from "./pages/Record";
@@ -31,9 +30,6 @@ function App() {
   const [isIdleModalOpen, setIsIdleModalOpen] = useState(false);
   const uid = useSelector((state) => state.auth.id);
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated); // ルートパスのリダイレクト用に認証状態を取得
-
-  // WebSocket の再接続監視
-  // useWebSocket(isAuthenticated ? uid : null);
 
   useEffect(() => {
     if (isAuthenticated && uid) {

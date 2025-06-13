@@ -13,6 +13,7 @@ import storage from "redux-persist/lib/storage"; // localStorage を使う場合
 // import storageSession from 'redux-persist/lib/storage/session' // sessionStorage にする場合
 import { createLogger } from "redux-logger";
 
+import websocket from "./middlewares/websocket";
 import { rootReducer } from "./rootReducer";
 
 const middleware = [];
@@ -53,10 +54,11 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // redux-persist のアクションタイプを無視するように設定 (推奨)
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(...middleware),
+    })
+      .concat(websocket) // websocket
+      .concat(...middleware), // ログ
 });
 
 export const persistor = persistStore(store);
