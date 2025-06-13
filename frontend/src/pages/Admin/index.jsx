@@ -16,7 +16,7 @@ const AdminPage = () => {
     if (role !== "admin") {
       navigate("/main");
     }
-  }, [navigate]);
+  }, [navigate, user.role]);
 
   return (
     <div style={{ padding: "1rem" }}>

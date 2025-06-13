@@ -32,8 +32,8 @@ const websocket =
           dispatch({ type: websocketActionTypes.SOCKET_CONNECTION_SUCCESS });
         };
 
-        socket.onerror = (err) => {
-          console.error("[WebSocket] ❌ エラー:", err);
+        socket.onerror = () => {
+          // console.error("[WebSocket] ❌ エラー:", err);
           dispatch({ type: websocketActionTypes.SOCKET_CONNECTION_ERROR });
         };
 
@@ -41,7 +41,11 @@ const websocket =
           try {
             const data = JSON.parse(event.data);
             if (data.event === "force_logout") {
-              alert("他の端末からログインされたためログアウトしました");
+              const reason =
+                data.reason === "admin"
+                  ? "管理者により切断されました"
+                  : "他の端末からログインされたためログアウトしました";
+              alert(reason);
               performLogout(dispatch);
               socket.close();
             } else {
@@ -56,6 +60,7 @@ const websocket =
         };
 
         socket.onclose = () => {
+          // console.log("[WebSocket] ❌ 接続が切断されました");
           dispatch({ type: websocketActionTypes.SOCKET_CONNECTION_CLOSED });
         };
         break;

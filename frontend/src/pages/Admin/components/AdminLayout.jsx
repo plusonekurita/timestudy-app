@@ -5,6 +5,7 @@ import {
   Settings as SettingsIcon,
   PersonAddAlt1 as PersonAddAlt1Icon,
   Group as GroupIcon,
+  TapAndPlay as TapAndPlayIcon,
 } from "@mui/icons-material";
 import {
   Drawer,
@@ -20,6 +21,7 @@ import {
 import React, { useState } from "react";
 
 import LoadingOverlay from "../../../components/LoadingOverlay";
+import ConnectedUserListPage from "./ConnectedUserListPage";
 import DashboardPage from "./DashboardPage";
 import UserListPage from "./UserListPage";
 import UserAddPage from "./UserAddPage";
@@ -52,6 +54,11 @@ const AdminLayout = () => {
       label: "利用者一覧",
       icon: <GroupIcon />,
       content: <UserListPage setLoading={setLoading} />,
+    },
+    {
+      label: "接続者一覧",
+      icon: <TapAndPlayIcon />,
+      content: <ConnectedUserListPage setLoading={setLoading} />,
     },
     // {
     //   label: "設定",

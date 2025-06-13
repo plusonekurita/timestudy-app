@@ -97,8 +97,6 @@ const LoginPage = () => {
         auth: false,
       });
 
-      console.log(data);
-
       // アクセストークンを保存
       localStorage.setItem("access_token", data.access_token);
       const user = {

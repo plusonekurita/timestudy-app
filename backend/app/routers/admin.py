@@ -11,6 +11,7 @@ from passlib.hash import bcrypt
 from pydantic import BaseModel, Field, constr
 from typing import Annotated
 from datetime import datetime, timedelta, timezone
+from app.websocket_manager import manager
 
 JST = timezone(timedelta(hours=9))
 
@@ -128,3 +129,25 @@ def get_dashboard(db: Session = Depends(get_db), current_admin=Depends(get_curre
         "totalRecords": total_records,
         "recentUsers": recent_data
     }
+
+# ユーザの接続状況を取得（ソケット）
+@router.get("/admin/active-users")
+def get_active_users(db: Session = Depends(get_db)):
+    all_users = db.query(User).order_by(User.id.asc()).all() # id順でユーザテーブルから取得
+    connected_uids = set(manager.active_connections.keys())
+
+    result = []
+    for user in all_users:
+        result.append({
+            "id": user.id,
+            "uid": user.uid,
+            "name": user.name,
+            "is_connected": user.uid in connected_uids
+        })
+
+    return {"connections": result}
+
+@router.post("/admin/force-logout/{uid}")
+async def force_logout(uid: str):
+    await manager.force_logout_all(uid)
+    return {"message": f"{uid} を切断しました"}

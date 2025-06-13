@@ -11,5 +11,8 @@ async def websocket_endpoint(websocket: WebSocket, uid: str):
         while True:
             await websocket.receive_text()  # 接続維持のために待機
     except WebSocketDisconnect:
-        print(f"[{uid}] ❌ disconnected")
+        # print(f"[{uid}] ❌ disconnected")
+        manager.disconnect(uid, websocket)
+    except Exception as e:
+        # print(f"[{uid}] ⚠️ unexpected disconnect: {e}")
         manager.disconnect(uid, websocket)
