@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dayjs from "dayjs";
 
 import { getValue } from "../utils/localStorageUtils";
@@ -9,7 +9,7 @@ export const useRecordData = (records = [], startDate, endDate) => {
   const [chartData, setChartData] = useState([]);
   const [summaryData, setSummaryData] = useState([]);
   const [detailedChartData, setDetailedChartData] = useState([]);
-  const userId = localStorage.getItem("userId");
+  const user = useMemo(() => getValue("user"), []);
 
   useEffect(() => {
     const todayKey = dayjs().format("YYYY-MM-DD");
@@ -34,7 +34,7 @@ export const useRecordData = (records = [], startDate, endDate) => {
     }
 
     // ローカルストレージから当日記録を取得
-    const allDailyRecords = getValue(`dailyTimeStudyRecords_${userId}`, {});
+    const allDailyRecords = getValue(`dailyTimeStudyRecords_${user.id}`, {});
     const isTodaySelected = startKey === todayKey || endKey === todayKey;
     const localRecordObject =
       isTodaySelected && allDailyRecords[todayKey]?.length
@@ -131,7 +131,7 @@ export const useRecordData = (records = [], startDate, endDate) => {
     });
     allDetailedItems.sort((a, b) => b.duration - a.duration);
     setDetailedChartData(allDetailedItems);
-  }, [records, startDate, endDate, userId]);
+  }, [records, startDate, endDate, user]);
 
   return { chartData, summaryData, detailedChartData };
 };

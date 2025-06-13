@@ -24,15 +24,13 @@ dayjs.locale(ja);
 dayjs.extend(localeData);
 
 import { logout } from "../store/slices/authSlice";
-import { getValue } from "../utils/localStorageUtils";
 import { colors } from "../constants/theme";
 
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const dispatch = useDispatch();
-  const { userName } = useSelector((state) => state.auth);
-  const today = dayjs().format("YYYY年M月D日（ddd）");
-  const status = getValue("varsion");
+  const { userName, version } = useSelector((state) => state.auth);
+  // const today = dayjs().format("YYYY年M月D日（ddd）"); // ヘッダーに日付を入れる場合
 
   const handleOpenUserMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -48,12 +46,12 @@ const Header = () => {
 
   const getStatusLabel = () => {
     const icon =
-      status === 0 ? (
+      version === 0 ? (
         <BasicIcon fontSize="small" sx={{ color: colors.basic }} />
       ) : (
         <ProIcon fontSize="small" sx={{ color: colors.pro }} />
       );
-    const label = status === 0 ? "Basic" : "Pro";
+    const label = version === 0 ? "Basic" : "Pro";
 
     return (
       <Box display="flex" alignItems="center" gap={0.5}>

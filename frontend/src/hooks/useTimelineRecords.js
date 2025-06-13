@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import dayjs from "dayjs";
 
 import { showSnackbar } from "../store/slices/snackbarSlice";
+import { getValue } from "../utils/localStorageUtils";
 import { menuCategories } from "../constants/menu";
 import { apiFetch } from "../utils/api";
 
@@ -31,7 +32,7 @@ const getActivityMeta = (type, name) => {
 export const useTimelineRecords = (date) => {
   const [records, setRecords] = useState([]);
   const dispatch = useDispatch();
-  const userId = localStorage.getItem("userId");
+  const user = useMemo(() => getValue("user"), []);
 
   useEffect(() => {
     const dateKey = dayjs(date).format("YYYY-MM-DD");
@@ -43,7 +44,7 @@ export const useTimelineRecords = (date) => {
       if (isToday) {
         // ローカルストレージから取得
         try {
-          const raw = localStorage.getItem(`dailyTimeStudyRecords_${userId}`);
+          const raw = localStorage.getItem(`dailyTimeStudyRecords_${user.id}`);
           const parsed = raw ? JSON.parse(raw) : {};
           const todayRecords = parsed[dateKey] || [];
           setRecords(todayRecords);
@@ -57,7 +58,7 @@ export const useTimelineRecords = (date) => {
           const data = await apiFetch("/get-time-records", {
             method: "POST",
             body: {
-              user_id: localStorage.getItem("userId"),
+              user_id: user.id,
               start_date: dateKey,
               end_date: dateKey,
             },
@@ -96,7 +97,7 @@ export const useTimelineRecords = (date) => {
     };
 
     loadData();
-  }, [date, dispatch, userId]);
+  }, [date, dispatch, user]);
 
   // 🔹 メタ情報を付加したデータを返す
   const enrichedRecords = useMemo(() => {

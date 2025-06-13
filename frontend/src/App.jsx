@@ -4,14 +4,16 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useIdleTimer } from "react-idle-timer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+import { websocketActionTypes } from "./store/middlewares/websocketActionTypes";
 import NotificationSnackbar from "./components/NotificationSnackbar";
-import { StopwatchProvider } from "./constants/StopwatchProvider ";
+import { StopwatchProvider } from "./constants/StopwatchProvider";
 import IdleTimeoutDialog from "./components/IdleTimeoutDialog";
 import { hideSnackbar } from "./store/slices/snackbarSlice";
 import ProtectedLayout from "./components/ProtectedLayout";
 import { logout } from "./store/slices/authSlice";
+import useWebSocket from "./hooks/useWebSocket";
 import TimelineView from "./pages/Timeline";
 import RecordsPage from "./pages/Record";
 import LoginPage from "./pages/Login";
@@ -25,14 +27,17 @@ const IDLE_TIMEOUT = 30 * 60 * 10000; // 30分
 function App() {
   const dispatch = useDispatch();
   const [isIdleModalOpen, setIsIdleModalOpen] = useState(false);
+  const uid = useSelector((state) => state.auth.id);
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated); // ルートパスのリダイレクト用に認証状態を取得
 
-  // ルートパスのリダイレクト用に認証状態を取得
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  // WebSocket の再接続監視
+  // useWebSocket(isAuthenticated ? uid : null);
 
-  // 前日の記録をリセットする関数
-  // useEffect(() => {
-  //   checkAndResetTimeStudyRecords();
-  // }, []);
+  useEffect(() => {
+    if (isAuthenticated && uid) {
+      dispatch({ type: websocketActionTypes.SOCKET_CONNECTION_INIT });
+    }
+  }, [isAuthenticated, uid, dispatch]);
 
   // 通知バーの状態を取得
   const {

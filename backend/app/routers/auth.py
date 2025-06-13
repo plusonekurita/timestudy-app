@@ -6,33 +6,31 @@ from app.models.user import User
 from app.db.database import get_db
 from datetime import datetime, timedelta, timezone
 from app.utils.exceptions import ApiException
+from app.websocket_manager import manager  # 共通インスタンスを使う
 import jwt
 import os
-import uuid
 
 JST = timezone(timedelta(hours=9))
 
 router = APIRouter()
 # SECRET_KEY = os.getenv("SECRET_KEY", "changeme")
 SECRET_KEY = "changeme"
-print(SECRET_KEY)
 
 class LoginRequest(BaseModel):
     uid: str
     password: str
 
 @router.post("/login")
-def login(request: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.uid == request.uid).first()
+async def login(request: LoginRequest, db: Session = Depends(get_db)):
     try:
         user = db.query(User).filter(User.uid == request.uid).first()
+        if not user or not bcrypt.verify(request.password, user.password):
+            raise ApiException(401, "認証エラー", "UIDまたはパスワードが無効です")
 
-        if not user:
-            raise ApiException(401, "認証エラー", "ユーザーが見つかりません")
+        # 他の接続を強制ログアウト
+        # await manager.force_logout_others(user.uid)
+        # await manager.force_logout_all(user.uid)
 
-        if not bcrypt.verify(request.password, user.password):
-            raise ApiException(401, "認証エラー", "パスワードが一致しません")
-        
         user.last_login = datetime.now(JST)
         db.commit()
 
@@ -44,6 +42,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         return {
             "access_token": token,
             "id": user.id,
+            "uid": user.uid,
             "name": user.name,
             "version": user.version,
             "role": user.role

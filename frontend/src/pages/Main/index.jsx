@@ -8,7 +8,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import Box from "@mui/material/Box";
 import { useState } from "react";
 
-import { useStopwatchContext } from "../../constants/StopwatchProvider ";
+import { useStopwatchContext } from "../../constants/StopwatchProvider";
 import StopwatchCard from "../../components/StopwatchCard";
 import MenuItemGrid from "../../components/MenuItemGrid";
 import MainMenuTabs from "../../components/MainMenuTabs";

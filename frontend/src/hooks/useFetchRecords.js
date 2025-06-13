@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import dayjs from "dayjs";
 
 import { showSnackbar } from "../store/slices/snackbarSlice";
+import { getValue } from "../utils/localStorageUtils";
 import { apiFetch } from "../utils/api";
 
 export const useFetchRecords = (startDate, endDate) => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+
+  const user = useMemo(() => getValue("user"), []);
 
   useEffect(() => {
     if (!startDate || !endDate) return;
@@ -29,7 +32,7 @@ export const useFetchRecords = (startDate, endDate) => {
         const data = await apiFetch("/get-time-records", {
           method: "POST",
           body: {
-            user_id: localStorage.getItem("userId"),
+            user_id: user.id,
             start_date: startKey,
             end_date: endKey,
           },
@@ -66,7 +69,7 @@ export const useFetchRecords = (startDate, endDate) => {
     };
 
     fetchData();
-  }, [startDate, endDate, dispatch]);
+  }, [startDate, endDate, dispatch, user]);
 
   return { records, loading };
 };

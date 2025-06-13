@@ -23,6 +23,8 @@ const updateThemeColor = (color) => {
 };
 
 const LoginPage = () => {
+  const user = getValue("user");
+
   useEffect(() => {
     // ログインページ表示時にテーマカラーを白に設定
     updateThemeColor(colors.loginTheme);
@@ -37,9 +39,9 @@ const LoginPage = () => {
   const dispatch = useDispatch();
 
   // 本日以外の日付の記録を処理する関数
-  const processOldRecords = async (userId) => {
+  const processOldRecords = async (id) => {
     const todayKey = new Date().toISOString().split("T")[0];
-    const allDailyRecords = getValue(`dailyTimeStudyRecords_${userId}`, {});
+    const allDailyRecords = getValue(`dailyTimeStudyRecords_${id}`, {});
     const remainingRecords = {};
     let saveCount = 0; // 保存件数をカウント
 
@@ -51,12 +53,10 @@ const LoginPage = () => {
       } else {
         // 当日以外の記録をDBに保存
         try {
-          const userId = getValue("userId");
-
           await apiFetch("/save-time-records", {
             method: "POST",
             body: {
-              user_id: userId,
+              user_id: user.id,
               record_date: dateKey,
               record: allDailyRecords[dateKey],
             },
@@ -77,7 +77,7 @@ const LoginPage = () => {
     }
 
     // すべて成功したらローカルを更新
-    setItem(`dailyTimeStudyRecords_${userId}`, remainingRecords);
+    setItem(`dailyTimeStudyRecords_${id}`, remainingRecords);
     if (saveCount > 0) {
       dispatch(
         showSnackbar({
@@ -96,12 +96,19 @@ const LoginPage = () => {
         body: { uid, password },
       });
 
+      console.log(data);
+
       // アクセストークンを保存
       localStorage.setItem("access_token", data.access_token);
-      setItem("userId", data.id);
-      setItem("userName", data.name);
-      setItem("version", data.version);
-      setItem("role", data.role);
+      const user = {
+        id: data.id,
+        userId: data.uid,
+        userName: data.name,
+        version: data.version,
+        role: data.role,
+      };
+
+      setItem("user", user);
 
       dispatch(
         showSnackbar({
@@ -112,8 +119,10 @@ const LoginPage = () => {
       dispatch(
         login({
           id: data.id,
+          uid: data.uid,
           name: data.name,
           version: data.version,
+          role: data.role,
         })
       );
 

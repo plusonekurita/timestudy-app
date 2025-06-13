@@ -15,7 +15,7 @@ export const useStopwatch = () => {
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0); // 経過時間（秒）
   const intervalRef = useRef(null);
-  const userId = localStorage.getItem("userId");
+  const user = getValue("user");
 
   // 日付キーの取得
   const getRecordDate = (time = Date.now()) => {
@@ -70,7 +70,7 @@ export const useStopwatch = () => {
 
         try {
           const recordDateKey = getRecordDate(startTime);
-          const key = `dailyTimeStudyRecords_${userId}`;
+          const key = `dailyTimeStudyRecords_${user.id}`;
           const dailyRecords = getValue(key, {}); // 新しいキー
 
           // 記録する日付のキーがあるか確認
@@ -96,7 +96,7 @@ export const useStopwatch = () => {
       setElapsedTime(0); // 経過時間をリセット
       setIsRunning(true);
     },
-    [activeItem, startTime, userId]
+    [activeItem, startTime, user]
   ); // activeItemに依存しないように修正
 
   // タイマーを一時停止する関数
@@ -140,7 +140,7 @@ export const useStopwatch = () => {
       };
 
       try {
-        const dailyKey = `dailyTimeStudyRecords_${userId}`;
+        const dailyKey = `dailyTimeStudyRecords_${user.id}`;
         const recordDateKey = getRecordDate(startTime);
         const dailyRecords = getValue(dailyKey, {});
         if (!dailyRecords[recordDateKey]) {
@@ -154,7 +154,7 @@ export const useStopwatch = () => {
       }
     }
     cloaseTimer();
-  }, [activeItem, cloaseTimer, elapsedTime, isRunning, startTime, userId]);
+  }, [activeItem, cloaseTimer, elapsedTime, isRunning, startTime, user]);
 
   return {
     activeItem,
