@@ -9,10 +9,10 @@ import Box from "@mui/material/Box";
 import { useState } from "react";
 
 import { useStopwatchContext } from "../../constants/StopwatchProvider";
-import StopwatchCard from "../../components/StopwatchCard";
-import MenuItemGrid from "../../components/MenuItemGrid";
-import MainMenuTabs from "../../components/MainMenuTabs";
+import StopwatchCard from "./components/StopwatchCard";
 import { menuCategories } from "../../constants/menu";
+import MenuItemGrid from "./components/MenuItemGrid";
+import MainMenuTabs from "./components/MainMenuTabs";
 
 const MainPage = () => {
   const [swiperInstance, setSwiperInstance] = useState(null);

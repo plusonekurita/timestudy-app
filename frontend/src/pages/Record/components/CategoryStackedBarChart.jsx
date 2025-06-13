@@ -2,7 +2,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from "recharts";
 // src/components/CategoryStackedBarChart.jsx
 import React from "react";
 
-import { colors } from "../../constants/theme";
+import { colors } from "../../../constants/theme";
 
 const CategoryStackedBarChart = ({ chartData }) => {
   return (

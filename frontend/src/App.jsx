@@ -21,6 +21,7 @@ import AdminPage from "./pages/Admin";
 import MainPage from "./pages/Main";
 
 // アイドルタイマーの設定時間 TODO: タイムスタディなので必要なのか検討
+// TODO: セッションタイムを決める
 const IDLE_TIMEOUT = 6 * 60 * 60 * 1000; // 6時間
 // const IDLE_TIMEOUT = 30 * 60 * 10000; // 30分
 // const IDLE_TIMEOUT = 10 * 1000; // 10秒 テスト用

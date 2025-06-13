@@ -10,7 +10,7 @@ import CardHeader from "@mui/material/CardHeader";
 import Card from "@mui/material/Card";
 import Box from "@mui/material/Box";
 
-import { formatTime } from "../utils/timeUtils";
+import { formatTime } from "../../../utils/timeUtils";
 
 const StopwatchCard = ({
   label,

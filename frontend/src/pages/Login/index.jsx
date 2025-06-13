@@ -6,9 +6,9 @@ import React, { useEffect } from "react";
 import { getValue, setItem } from "../../utils/localStorageUtils";
 import { showSnackbar } from "../../store/slices/snackbarSlice";
 import { login } from "../../store/slices/authSlice";
+import LoginForm from "./components/LoginForm";
 import { colors } from "../../constants/theme";
 import { apiFetch } from "../../utils/api";
-import LoginForm from "./LoginForm";
 
 const updateThemeColor = (color) => {
   let metaTag = document.querySelector("meta[name='theme-color']");
@@ -94,6 +94,7 @@ const LoginPage = () => {
       const data = await apiFetch("/login", {
         method: "POST",
         body: { uid, password },
+        auth: false,
       });
 
       console.log(data);

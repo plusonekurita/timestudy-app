@@ -2,8 +2,8 @@ import { Box, Grid, Typography } from "@mui/material";
 // src/components/CategorySummaryList
 import React from "react";
 
-import { formatDurationFromMinutes } from "../../utils/timeUtils";
-import { colors } from "../../constants/theme";
+import { formatDurationFromMinutes } from "../../../utils/timeUtils";
+import { colors } from "../../../constants/theme";
 
 const CategorySummaryList = ({ summaryData }) => {
   if (!summaryData || summaryData.length === 0) {

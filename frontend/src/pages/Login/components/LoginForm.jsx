@@ -11,7 +11,6 @@ const LoginForm = ({ onSubmitAttempt }) => {
   } = useForm();
 
   const onSubmit = (data) => {
-    // TODO: ログイン処理（バックエンド処理を追加）
     onSubmitAttempt(data.username, data.password);
   };
 
@@ -23,11 +22,10 @@ const LoginForm = ({ onSubmitAttempt }) => {
           fullWidth
           margin="normal"
           // フィールド名, {ルール}
-          // {...register("username", {
-          //   required: "ユーザー名は必須です",
-          //   minLength: 3,
-          //   maxLength: 30,
-          // })}
+          {...register("username", {
+            required: "ユーザー名は必須です",
+            maxLength: 30,
+          })}
           {...register("username")}
           error={!!errors.username}
           helperText={errors.username?.message}
@@ -39,7 +37,7 @@ const LoginForm = ({ onSubmitAttempt }) => {
           type="password"
           fullWidth
           margin="normal"
-          // {...register("password", { required: "パスワードは必須です" })}
+          {...register("password", { required: "パスワードは必須です" })}
           {...register("password")}
           error={!!errors.password}
           helperText={errors.password?.message}

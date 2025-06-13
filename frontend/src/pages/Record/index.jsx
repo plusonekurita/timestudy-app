@@ -15,13 +15,13 @@ import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import dayjs from "dayjs";
 
+import DetailedHorizontalBarChart from "./components/DetailedHorizontalBarChart";
 import FullscreenProgressBar from "../../components/FullscreenProgressBar";
+import CategoryStackedBarChart from "./components/CategoryStackedBarChart";
 import DatePickerWithToday from "../../components/DatePickerWithToday";
-import DetailedHorizontalBarChart from "./DetailedHorizontalBarChart";
-import CategoryStackedBarChart from "./CategoryStackedBarChart";
+import CategorySummaryList from "./components/CategorySummaryList";
 import { useFetchRecords } from "../../hooks/useFetchRecords";
 import { useRecordData } from "../../hooks/useRecordData";
-import CategorySummaryList from "./CategorySummaryList";
 import TimelineView from "./TimelineView";
 
 const RecordsPage = () => {

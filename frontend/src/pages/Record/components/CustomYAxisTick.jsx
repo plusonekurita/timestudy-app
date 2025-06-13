@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 // src/components/CustomYAxisTick.jsx
 import React from "react";
 
-import { colors } from "../../constants/theme";
+import { colors } from "../../../constants/theme";
 
 const CustomYAxisTick = ({ y, payload, index, width, detailedChartData }) => {
   const labelText = payload.value;

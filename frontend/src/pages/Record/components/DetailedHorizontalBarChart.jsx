@@ -3,8 +3,8 @@ import { Box, Typography } from "@mui/material";
 // src/components/DetailedHorizontalBarChart.jsx
 import React from "react";
 
+import { colors } from "../../../constants/theme";
 import CustomYAxisTick from "./CustomYAxisTick";
-import { colors } from "../../constants/theme";
 
 const DetailedHorizontalBarChart = ({ data }) => {
   if (!data || data.length === 0) return null;
