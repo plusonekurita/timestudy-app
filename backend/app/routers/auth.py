@@ -28,7 +28,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
             raise ApiException(401, "認証エラー", "UIDまたはパスワードが無効です")
 
         # 他の接続を強制ログアウト
-        await manager.force_logout_all(user.uid)
+        await manager.force_logout_all(user.uid, reason="login")
 
         user.last_login = datetime.now(JST)
         db.commit()

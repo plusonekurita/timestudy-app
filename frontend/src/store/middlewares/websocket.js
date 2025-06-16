@@ -44,7 +44,9 @@ const websocket =
               const reason =
                 data.reason === "admin"
                   ? "管理者により切断されました"
-                  : "他の端末からログインされたためログアウトしました";
+                  : data.reason === "login"
+                  ? "他の端末からログインされたためログアウトしました"
+                  : "接続が強制的に切断されました";
               alert(reason);
               performLogout(dispatch);
               socket.close();

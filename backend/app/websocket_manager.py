@@ -23,13 +23,13 @@ class WebSocketManager:
         else:
             print(f"[{uid}] ⚠️ connection not found for disconnect")
 
-    async def force_logout_all(self, uid: str, exclude=None):
+    async def force_logout_all(self, uid: str, exclude=None, reason="admin"):
         if uid not in self.active_connections:
             return
 
         for ws in list(self.active_connections[uid]):
             if ws != exclude:
-                await ws.send_json({"event": "force_logout", "reason": "admin"})
+                await ws.send_json({"event": "force_logout", "reason": reason})
                 await ws.close()
                 self.active_connections[uid].remove(ws)
 
