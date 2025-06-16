@@ -1,10 +1,13 @@
+import React, { useEffect, useState } from "react";
 // src/pages/Login/index
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
-import React, { useEffect } from "react";
+import { set } from "react-hook-form";
 
 import { getValue, setItem } from "../../utils/localStorageUtils";
 import { showSnackbar } from "../../store/slices/snackbarSlice";
+import LoadingOverlay from "../../components/LoadingOverlay";
 import { login } from "../../store/slices/authSlice";
 import LoginForm from "./components/LoginForm";
 import { colors } from "../../constants/theme";
@@ -23,7 +26,8 @@ const updateThemeColor = (color) => {
 };
 
 const LoginPage = () => {
-  const user = getValue("user");
+  const [loading, setLoading] = useState(false); // ログイン中のローディング
+  const [error, setError] = useState(null); // ログイン時のエラーメッセージ
 
   useEffect(() => {
     // ログインページ表示時にテーマカラーを白に設定
@@ -56,7 +60,7 @@ const LoginPage = () => {
           await apiFetch("/save-time-records", {
             method: "POST",
             body: {
-              user_id: user.id,
+              user_id: id,
               record_date: dateKey,
               record: allDailyRecords[dateKey],
             },
@@ -90,6 +94,8 @@ const LoginPage = () => {
 
   // LoginForm: ログイン試行関数
   const handleLoginAttempt = async (uid, password) => {
+    setLoading(true);
+    setError(null);
     try {
       const data = await apiFetch("/login", {
         method: "POST",
@@ -138,6 +144,7 @@ const LoginPage = () => {
       return true;
     } catch (err) {
       console.log(err);
+      setError(err.message);
       dispatch(
         showSnackbar({
           message: err.message,
@@ -145,13 +152,17 @@ const LoginPage = () => {
         })
       );
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div style={{ padding: 20 }}>
+      <LoadingOverlay loading={loading} />
       <h1>ログイン</h1>
       <LoginForm onSubmitAttempt={handleLoginAttempt} />
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 };
