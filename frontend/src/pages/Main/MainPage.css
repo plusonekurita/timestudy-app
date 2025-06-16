@@ -1,6 +1,7 @@
 /* Swiperコンテナ全体に左右の余白を追加 */
 .my-swiper {
   /* padding: 0 10px !important; Swiperの外側に余白 */
+  height: 77vh;
   box-sizing: border-box;
 }
 
@@ -14,5 +15,5 @@
 .my-swiper .swiper-slide-active {
   opacity: 1; /* アクティブスライドは透過しない */
   transform: scale(1); /* アクティブスライドは元のサイズ */
-  height: 100vh;
+  height: 100%;
 }

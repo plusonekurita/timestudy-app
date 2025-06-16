@@ -50,7 +50,6 @@ const MainPage = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        // minHeight: "calc(100vh - 74px)",
         flexGrow: 1,
         justifyContent: "flex-start",
         alignItems: "center",
