@@ -64,15 +64,22 @@ const MainPage = () => {
         onChange={handleChange}
       />
       <Swiper
-        className="my-swiper"
-        style={{ width: "100%", maxWidth: 600 }} // MenuItemGrid と幅を合わせる
+        className="my-swiper full-height-swiper"
+        autoHeight={true}
+        style={{ width: "100%", maxWidth: 600, height: "auto" }} // MenuItemGrid と幅を合わせる
         onSwiper={setSwiperInstance} // Swiperインスタンスを取得
         onSlideChange={(swiper) => setSelectedTab(swiper.activeIndex)} // スワイプ時にタブ状態を更新
         initialSlide={selectedTab} // 初期表示スライド
       >
         {menuCategories.map((category, index) => (
           <SwiperSlide key={index}>
-            <Box sx={{ pb: activeItem ? 8 : 0 }}>
+            <Box
+              sx={{
+                pb: activeItem ? 25 : 0,
+                minHeight: "calc(100vh - 160px)", // ← 必須：下まで伸ばす
+                boxSizing: "border-box",
+              }}
+            >
               <MenuItemGrid
                 items={category.items}
                 activeItem={activeItem}
