@@ -47,9 +47,13 @@ const websocket =
                   : data.reason === "login"
                   ? "他の端末からログインされたためログアウトしました"
                   : "接続が強制的に切断されました";
+
               alert(reason);
+
               performLogout(dispatch);
-              socket.close();
+              if (socket) {
+                socket.close();
+              }
             } else {
               dispatch({
                 type: websocketActionTypes.SOCKET_MESSAGE,
