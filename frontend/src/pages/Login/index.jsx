@@ -164,6 +164,7 @@ const LoginPage = () => {
   return (
     <div style={{ padding: 20 }}>
       <h1>ログイン</h1>
+      <h2>(デモ版)</h2>
       <LoginForm onSubmitAttempt={handleLoginAttempt} />
     </div>
   );
