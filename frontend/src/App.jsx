@@ -16,6 +16,7 @@ import { performLogout } from "./utils/auth";
 import TimelineView from "./pages/Timeline";
 import RecordsPage from "./pages/Record";
 import { apiFetch } from "./utils/api";
+import TopMenu from "./pages/TopMenu";
 import LoginPage from "./pages/Login";
 import AdminPage from "./pages/Admin";
 import MainPage from "./pages/Main";
@@ -98,6 +99,7 @@ function App() {
 
           {/* 認証が必要なページ*/}
           <Route element={<ProtectedLayout />}>
+            <Route path="/menu" element={<TopMenu />} />
             <Route path="/main" element={<MainPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/timeline" element={<TimelineView />} />
@@ -110,7 +112,7 @@ function App() {
             path="/"
             element={
               isAuthenticated ? (
-                <Navigate to="/main" replace /> // 認証済みはメイン画面へ
+                <Navigate to="/menu" replace /> // 認証済みはメニュー画面へ
               ) : (
                 <Navigate to="/login" replace /> // 未認証
               )
