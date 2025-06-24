@@ -1,12 +1,21 @@
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import SettingsIcon from "@mui/icons-material/Settings";
-import BarChartIcon from "@mui/icons-material/BarChart";
-
-import { customIcons } from "../assets/icons";
+import { customIcons, topMenuIcons } from "../assets/icons";
 import { colors } from "./theme";
 
-// TODO: いずれDBに格納
+// メニュー画面アイコン
+export const menuItems = [
+  {
+    label: "タイムスタディ",
+    icon: <img src={topMenuIcons.time} />,
+    path: "/time",
+  },
+  {
+    label: "調査票",
+    icon: <img src={topMenuIcons.sheet} />,
+    path: "/sheetList",
+  },
+];
+
+// TODO: いずれマスターとしてDBに格納
 export const menuCategories = [
   {
     type: "directCare",

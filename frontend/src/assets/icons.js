@@ -21,8 +21,15 @@ import cleanIcon from "./images/clean.svg";
 import workIcon from "./images/work.svg";
 import mealIcon from "./images/meal.svg";
 import yoyuu from "./images/yoyuu.png";
+import sheet from "./images/sheet.svg";
 import other from "./images/other.png";
+import time from "./images/time.svg";
 import robo from "./images/robo.png";
+
+export const topMenuIcons = {
+  time: time,
+  sheet: sheet,
+};
 
 export const customIcons = {
   transfer: transferIcon,

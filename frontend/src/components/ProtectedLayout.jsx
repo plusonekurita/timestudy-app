@@ -1,32 +1,31 @@
 // src/components/ProtectedLayout
-import AlignVerticalBottomIcon from "@mui/icons-material/AlignVerticalBottom";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { BottomNavigation, BottomNavigationAction } from "@mui/material";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import EventNoteIcon from "@mui/icons-material/EventNote";
-import { useTheme } from "@mui/material/styles"; // MUIのテーマを利用するためにインポート
+import { useTheme } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 
+import { TIME_NAV, SHEET_NAV } from "../constants/navigation";
 import Header from "./Header";
 
 // ヘッダー、フッターの高さ
 const HEADER_HEIGHT = "42px";
 const FOOTER_HEIGHT = "68px";
 
-const navItems = [
-  { label: "計測", icon: <AccessTimeIcon />, path: "/main" },
-  { label: "履歴", icon: <EventNoteIcon />, path: "/timeline" },
-  { label: "統計", icon: <AlignVerticalBottomIcon />, path: "/records" },
-  // { label: "その他", icon: <MoreHorizIcon />, path: "/main" },
-];
-
 const ProtectedLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const theme = useTheme(); // MUIのテーマオブジェクトを取得
+
+  // 選択したメニューに応じてナビメニューを切り替える処理を実装
+  const navItems = [];
+
+  if (location.pathname.startsWith("/time")) {
+    navItems.push(...TIME_NAV);
+  } else if (location.pathname.startsWith("/sheetList")) {
+    navItems.push(...SHEET_NAV);
+  }
 
   if (!isAuthenticated) {
     // 未認証ならログインページへリダイレクト
@@ -37,6 +36,7 @@ const ProtectedLayout = () => {
     location.pathname.startsWith(item.path)
   );
   const isAdminPage = location.pathname.startsWith("/admin");
+  const isMenuPage = location.pathname.startsWith("/menu");
 
   // 認証済み
   // 共通ヘッダーなどを配置できる
@@ -68,14 +68,13 @@ const ProtectedLayout = () => {
           pt: HEADER_HEIGHT, // 固定ヘッダーの高さ分だけ上部にパディングを設定
           pb: isAdminPage ? 0 : FOOTER_HEIGHT, // BottomNavigation の高さ分の余白
           width: "100%", // 幅を100%に
-          // overflowY: 'auto', // 必要に応じてメインコンテンツエリアのみスクロールさせる場合
         }}
       >
-        <Outlet /> {/* ここに各ページのコンテンツが表示されます */}
+        <Outlet /> {/* ここに各ページのコンテンツが表示される */}
       </Box>
 
-      {/* フッター ※管理画面は非表示 */}
-      {!isAdminPage && (
+      {/* フッター ※管理画面とトップメニューでは非表示 */}
+      {!isAdminPage && !isMenuPage && (
         <BottomNavigation
           showLabels
           value={currentIndex}
