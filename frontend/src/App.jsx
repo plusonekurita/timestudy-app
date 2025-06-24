@@ -12,8 +12,11 @@ import { StopwatchProvider } from "./constants/StopwatchProvider";
 import IdleTimeoutDialog from "./components/IdleTimeoutDialog";
 import { hideSnackbar } from "./store/slices/snackbarSlice";
 import ProtectedLayout from "./components/ProtectedLayout";
+import SectionCompletePage from "./pages/sheetComplete";
+import SheetListPage from "./pages/sheetList";
 import { performLogout } from "./utils/auth";
 import TimelineView from "./pages/Timeline";
+import StaffSheet from "./pages/staffSheet";
 import RecordsPage from "./pages/Record";
 import { apiFetch } from "./utils/api";
 import TopMenu from "./pages/TopMenu";
@@ -26,6 +29,9 @@ import MainPage from "./pages/Main";
 const IDLE_TIMEOUT = 6 * 60 * 60 * 1000; // 6時間
 // const IDLE_TIMEOUT = 30 * 60 * 10000; // 30分
 // const IDLE_TIMEOUT = 10 * 1000; // 10秒 テスト用
+
+// スリープ対策（デモ版のみ）
+const KEEP_ALIVE_INTERVAL = 1000 * 60 * 10; // 25分に1回
 
 function App() {
   const dispatch = useDispatch();
@@ -85,11 +91,15 @@ function App() {
 
           {/* 認証が必要なページ*/}
           <Route element={<ProtectedLayout />}>
-            <Route path="/menu" element={<TopMenu />} />
-            <Route path="/main" element={<MainPage />} />
             <Route path="/admin" element={<AdminPage />} />
-            <Route path="/timeline" element={<TimelineView />} />
-            <Route path="/records" element={<RecordsPage />} />
+            <Route path="/menu" element={<TopMenu />} />
+            <Route path="/time" element={<MainPage />} />
+            <Route path="/time/timeline" element={<TimelineView />} />
+            <Route path="/time/records" element={<RecordsPage />} />
+            <Route path="/sheetList" element={<SheetListPage />} />
+            <Route path="/sheetList/staff" element={<StaffSheet />} />
+            <Route path="/complete" element={<SectionCompletePage />} />
+
             {/* ここにページを追加 */}
           </Route>
 

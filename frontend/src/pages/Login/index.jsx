@@ -136,11 +136,7 @@ const LoginPage = () => {
       }
 
       // 管理者なら admin ページへ遷移
-      if (data.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/main");
-      }
+      navigate(user.role === "admin" ? "/admin" : "/menu");
       return true;
     } catch (err) {
       console.log(err);
