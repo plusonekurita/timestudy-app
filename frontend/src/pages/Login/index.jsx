@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
 // src/pages/Login/index
+import "./style.scss";
+
+import useMediaQuery from "@mui/material/useMediaQuery";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
-import { set } from "react-hook-form";
 
 import { getValue, setItem } from "../../utils/localStorageUtils";
 import { showSnackbar } from "../../store/slices/snackbarSlice";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import { setStaffList } from "../../store/slices/staffSlice";
 import { login } from "../../store/slices/authSlice";
 import LoginForm from "./components/LoginForm";
 import { colors } from "../../constants/theme";
@@ -103,16 +106,32 @@ const LoginPage = () => {
         auth: false,
       });
 
+      // 職員一覧の取得
+      if (data.isAdmin && data.officeId) {
+        try {
+          // 権限が管理者であれば，紐づく事業所の利用者一覧を取得する
+          const staffList = await apiFetch(`/offices/${data.officeId}/staffs`);
+
+          // 必要ならstateやReduxに保存
+          dispatch(setStaffList(staffList));
+        } catch (error) {
+          console.warn("職員リストの取得に失敗しました", error);
+        }
+      }
+
       // アクセストークンを保存
       localStorage.setItem("access_token", data.access_token);
       const user = {
         id: data.id,
         uid: data.uid,
         userName: data.name,
-        version: data.version,
-        role: data.role,
+        staffCode: data.staffCode,
+        job: data.job,
+        officeId: data.officeId,
+        isAdmin: data.isAdmin,
       };
 
+      // ローカルに保存
       setItem("user", user);
 
       dispatch(
@@ -154,7 +173,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="login-page">
       <LoadingOverlay loading={loading} />
       <h1>ログイン</h1>
       <LoginForm onSubmitAttempt={handleLoginAttempt} />

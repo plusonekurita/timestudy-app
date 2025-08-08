@@ -63,8 +63,8 @@ export const useStopwatch = () => {
           label: activeItem.label, // アイテムのラベル
           // startTime: startTime, // アイテムの開始時刻
           // endTime: endTime, // 終了時刻（新しいタイマーの開始時刻）
-          startTime: dayjs(startTime).toISOString(), // ✅ ここを dayjs に
-          endTime: dayjs(endTime).toISOString(), // ✅
+          startTime: dayjs(startTime).tz(JST).toISOString(),
+          endTime: dayjs(endTime).tz(JST).toISOString(),
           duration, // 経過時間（秒）
         };
 
@@ -92,7 +92,7 @@ export const useStopwatch = () => {
         intervalRef.current = null;
       }
       setActiveItem(item);
-      setStartTime(Date.now());
+      setStartTime(Date.now()); // 現在の時刻をセット
       setElapsedTime(0); // 経過時間をリセット
       setIsRunning(true);
     },
@@ -128,15 +128,17 @@ export const useStopwatch = () => {
     if (isRunning && activeItem && startTime !== null) {
       const currentEndTime = startTime + elapsedTime * 1000; // startTimeはミリ秒、elapsedTimeは秒
       const durationSeconds = elapsedTime;
+      const durationMinutes = Math.ceil(elapsedTime / 60); // 秒 → 分（切り上げ）
 
       const record = {
         id: `record-${startTime}-${Math.random().toString(36).substr(2, 9)}`, // ユニークID
         type: activeItem.type,
         name: activeItem.name,
         label: activeItem.label,
-        startTime: new Date(startTime).toISOString(),
-        endTime: new Date(currentEndTime).toISOString(),
+        startTime: dayjs(startTime).tz(JST).toISOString(),
+        endTime: dayjs(currentEndTime).tz(JST).toISOString(),
         duration: durationSeconds,
+        minutes: durationMinutes,
       };
 
       try {

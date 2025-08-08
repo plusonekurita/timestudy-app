@@ -1,0 +1,31 @@
+.content {
+  min-height: calc(100vh - 24px);
+  padding: 24px 48px 24px 48px;
+  background-color: rgb(226, 226, 226);
+
+  &__header {
+    text-align: start;
+  }
+
+  &__button {
+    .dashboard-card {
+      padding: 15px;
+      .card-content {
+        gap: 0;
+
+        .card-icon {
+          display: flex;
+          align-items: center;
+          margin-bottom: 6px;
+          padding: 0.75rem;
+          color: rgb(93, 93, 93);
+          background-color: rgb(228, 228, 228);
+          border-radius: 9999px;
+        }
+        .card-title {
+          margin: 0;
+        }
+      }
+    }
+  }
+}

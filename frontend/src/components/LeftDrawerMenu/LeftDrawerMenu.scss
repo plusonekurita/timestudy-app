@@ -1,0 +1,128 @@
+.sidebar {
+  width: 320px;
+  background-color: #fff;
+  border-right: 1px solid rgb(205, 205, 205);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    padding: 1rem;
+    border-bottom: 1px solid rgb(205, 205, 205);
+    text-align: start;
+
+    h1,
+    .MuiTypography-root {
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+  }
+
+  &__nav {
+    flex: 1;
+    padding: 1rem !important;
+
+    .nav-item {
+      padding-top: 4px !important;
+      padding-bottom: 4px !important;
+      min-height: 36px; // 高さを抑える
+
+      .MuiListItemIcon-root {
+        min-width: 32px;
+        color: rgba(0, 0, 0, 0.492); // アイコン色調整（任意）
+      }
+
+      .MuiListItemText-root {
+        margin: 0;
+        span {
+          font-size: 14px;
+          white-space: nowrap;
+        }
+      }
+
+      // 選択時
+      &.Mui-selected {
+        background-color: #e6e6e6 !important; // 選択時の背景色
+        border-radius: 8px;
+        .MuiListItemIcon-root {
+          color: rgb(51, 124, 219);
+        }
+        .MuiListItemText-root span {
+          color: black;
+        }
+      }
+      // ホバー時
+      &:hover {
+        border-radius: 8px;
+        .MuiListItemIcon-root {
+          color: rgb(51, 124, 219);
+        }
+        .MuiListItemText-root span {
+          color: black;
+        }
+      }
+    }
+
+    // リスト子要素
+    .nav-children {
+      padding-left: 30px;
+
+      .child-button {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+        min-height: 32px;
+        font-size: 13px;
+
+        .MuiListItemIcon-root {
+          min-width: 28px;
+        }
+
+        .MuiListItemText-root span {
+          font-size: 13px;
+        }
+
+        &:hover {
+          border-radius: 8px;
+          .MuiListItemText-root span {
+            color: black;
+          }
+        }
+      }
+    }
+  }
+
+  &__logout {
+    padding: 1rem;
+    border-top: 1px solid rgb(205, 205, 205);
+
+    .nav-item {
+      padding-top: 4px !important;
+      padding-bottom: 4px !important;
+      min-height: 36px; // 高さを抑える
+
+      .MuiListItemIcon-root {
+        min-width: 32px;
+        color: rgba(0, 0, 0, 0.492); // アイコン色調整（任意）
+      }
+
+      .MuiListItemText-root {
+        margin: 0;
+        span {
+          font-size: 14px;
+          white-space: nowrap;
+        }
+      }
+
+      // ホバー時
+      &:hover {
+        border-radius: 8px;
+        .MuiListItemIcon-root {
+          color: rgb(51, 124, 219);
+        }
+        .MuiListItemText-root span {
+          color: black;
+        }
+      }
+    }
+  }
+}

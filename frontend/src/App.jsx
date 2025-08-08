@@ -6,12 +6,15 @@ import { useSelector, useDispatch } from "react-redux";
 import { useIdleTimer } from "react-idle-timer";
 import { useState, useEffect } from "react";
 
-import { websocketActionTypes } from "./store/middlewares/websocketActionTypes";
 import NotificationSnackbar from "./components/NotificationSnackbar";
+import TimeStudySurvey from "./pages/surveySheet/TimeStudySurvey";
 import { StopwatchProvider } from "./constants/StopwatchProvider";
 import IdleTimeoutDialog from "./components/IdleTimeoutDialog";
+import { showSnackbar } from "./store/slices/snackbarSlice";
 import { hideSnackbar } from "./store/slices/snackbarSlice";
 import ProtectedLayout from "./components/ProtectedLayout";
+import StaffSurvey from "./pages/surveySheet/StaffSurvey";
+import UserSurvey from "./pages/surveySheet/UserSurvey";
 import SectionCompletePage from "./pages/sheetComplete";
 import SheetListPage from "./pages/sheetList";
 import { performLogout } from "./utils/auth";
@@ -25,25 +28,16 @@ import AdminPage from "./pages/Admin";
 import MainPage from "./pages/Main";
 
 // アイドルタイマーの設定時間 TODO: タイムスタディなので必要なのか検討
-// TODO: セッションタイムを決める
 const IDLE_TIMEOUT = 6 * 60 * 60 * 1000; // 6時間
 // const IDLE_TIMEOUT = 30 * 60 * 10000; // 30分
 // const IDLE_TIMEOUT = 10 * 1000; // 10秒 テスト用
 
-// スリープ対策（デモ版のみ）
-const KEEP_ALIVE_INTERVAL = 1000 * 60 * 10; // 25分に1回
-
 function App() {
   const dispatch = useDispatch();
   const [isIdleModalOpen, setIsIdleModalOpen] = useState(false);
-  const uid = useSelector((state) => state.auth.id);
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated); // ルートパスのリダイレクト用に認証状態を取得
 
-  useEffect(() => {
-    if (isAuthenticated && uid) {
-      dispatch({ type: websocketActionTypes.SOCKET_CONNECTION_INIT });
-    }
-  }, [isAuthenticated, uid, dispatch]);
+  // ルートパスのリダイレクト用に認証状態を取得
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   // 通知バーの状態を取得
   const {
@@ -93,12 +87,21 @@ function App() {
           <Route element={<ProtectedLayout />}>
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/menu" element={<TopMenu />} />
+
             <Route path="/time" element={<MainPage />} />
             <Route path="/time/timeline" element={<TimelineView />} />
             <Route path="/time/records" element={<RecordsPage />} />
+
             <Route path="/sheetList" element={<SheetListPage />} />
             <Route path="/sheetList/staff" element={<StaffSheet />} />
-            <Route path="/complete" element={<SectionCompletePage />} />
+            <Route
+              path="/sheetList/complete"
+              element={<SectionCompletePage />}
+            />
+
+            <Route path="/survey-sheet/time" element={<TimeStudySurvey />} />
+            <Route path="/survey-sheet/staff" element={<StaffSurvey />} />
+            <Route path="/survey-sheet/user" element={<UserSurvey />} />
 
             {/* ここにページを追加 */}
           </Route>

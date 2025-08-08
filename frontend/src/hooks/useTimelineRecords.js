@@ -58,7 +58,7 @@ export const useTimelineRecords = (date) => {
           const data = await apiFetch("/get-time-records", {
             method: "POST",
             body: {
-              user_id: user.id,
+              staff_id: user.id,
               start_date: dateKey,
               end_date: dateKey,
             },

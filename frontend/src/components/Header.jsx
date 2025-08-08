@@ -1,17 +1,22 @@
 import {
-  Brightness1 as BasicIcon,
-  Diamond as ProIcon,
+  Button,
+  AppBar,
+  Divider,
+  Toolbar,
+  MenuItem,
+  IconButton,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import {
   Person as PersonIcon,
   Logout as LogoutIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
 import localeData from "dayjs/plugin/localeData";
-import MenuItem from "@mui/material/MenuItem";
-import Toolbar from "@mui/material/Toolbar";
-import Divider from "@mui/material/Divider";
-import AppBar from "@mui/material/AppBar";
 import { Avatar } from "@mui/material";
 import Menu from "@mui/material/Menu";
 import Box from "@mui/material/Box";
@@ -25,13 +30,17 @@ dayjs.extend(localeData);
 
 import { performLogout } from "../utils/auth";
 import { colors } from "../constants/theme";
+import { getValue } from "../utils/localStorageUtils";
+import { apiFetch } from "../utils/api";
+import { showSnackbar } from "../store/slices/snackbarSlice";
+import { startLoading, stopLoading } from "../store/slices/loadingSlice";
 
 // ヘッダーコンポーネント
 const Header = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
   const dispatch = useDispatch();
-  const { userName, version } = useSelector((state) => state.auth);
-  // const today = dayjs().format("YYYY年M月D日（ddd）"); // ヘッダーに日付を入れる場合
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const { id, userName } = useSelector((state) => state.auth);
 
   // メニューを開く
   const handleOpenUserMenu = (event) => {
@@ -49,31 +58,48 @@ const Header = () => {
     handleCloseUserMenu(); // メニューを閉じる
   };
 
-  const getStatusLabel = () => {
-    const icon =
-      version === 0 ? (
-        <BasicIcon fontSize="small" sx={{ color: colors.basic }} />
-      ) : (
-        <ProIcon fontSize="small" sx={{ color: colors.pro }} />
+  const handleClickSave = async () => {
+    dispatch(startLoading());
+    try {
+      const allDailyRecords = getValue(`dailyTimeStudyRecords_${id}`, {});
+      const todayKey = new Date().toISOString().split("T")[0];
+      const todayRecord = allDailyRecords[todayKey] || [];
+      if (todayRecord.length === 0) {
+        dispatch(
+          showSnackbar({
+            message: `計測の記録がありません`,
+            severity: "error",
+          })
+        );
+        return;
+      }
+      await apiFetch("/save-time-records", {
+        method: "POST",
+        body: {
+          staff_id: id,
+          record_date: todayKey,
+          record: todayRecord,
+        },
+      });
+      dispatch(
+        showSnackbar({
+          message: `記録保存に成功しました。`,
+          severity: "success",
+        })
       );
-    const label = version === 0 ? "Basic" : "Pro";
-
-    return (
-      <Box display="flex" alignItems="center" gap={0.5}>
-        {icon}
-        <span>{label}</span>
-      </Box>
-    );
+      setConfirmOpen(true);
+    } catch (error) {
+      console.warn(error);
+      alert("記録保存に失敗しました。もう一度お試しください。");
+    } finally {
+      dispatch(stopLoading());
+    }
   };
 
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
         <Toolbar sx={{ minHeight: "42px" }}>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {/* {today} */}
-          </Typography>
-          <Typography>{userName}</Typography>
           <div>
             <IconButton
               size="small"
@@ -111,16 +137,52 @@ const Header = () => {
                 },
               }}
             >
-              <MenuItem>{getStatusLabel()}</MenuItem>
-              <Divider />
+              {/* <MenuItem>勤務終了</MenuItem>
+              <Divider /> */}
               <MenuItem onClick={handleLogout}>
                 <LogoutIcon sx={{ mr: 1 }} />
                 ログアウト
               </MenuItem>
             </Menu>
           </div>
+          <Typography sx={{ flexGrow: 1, textAlign: "start" }}>
+            {userName}
+          </Typography>
+
+          <Button
+            variant="outlined"
+            onClick={handleClickSave}
+            sx={{
+              textAlign: "end",
+              justifyContent: "flex-end",
+              borderColor: "white",
+              color: "white",
+              "&:hover": {
+                color: "darkred",
+                borderColor: "darkred",
+              },
+            }}
+          >
+            勤務終了
+          </Button>
         </Toolbar>
       </AppBar>
+
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+        <DialogTitle>ログアウト確認</DialogTitle>
+        <DialogContent>ログアウトしますか？</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>キャンセル</Button>
+          <Button
+            variant="contained"
+            onClick={handleLogout}
+            color="primary"
+            autoFocus
+          >
+            ログアウト
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -32,7 +32,7 @@ export const useFetchRecords = (startDate, endDate) => {
         const data = await apiFetch("/get-time-records", {
           method: "POST",
           body: {
-            user_id: user.id,
+            staff_id: user.id,
             start_date: startKey,
             end_date: endKey,
           },
