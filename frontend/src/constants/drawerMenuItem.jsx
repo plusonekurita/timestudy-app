@@ -54,6 +54,7 @@ export const managementMenuItems = () => [
     id: "survey-sheet-list",
     label: "調査票一覧",
     icon: DescriptionIcon,
+    color: "#3B82F6",
     children: [
       {
         id: "time",
@@ -67,18 +68,19 @@ export const managementMenuItems = () => [
         icon: GroupIcon,
         path: "/survey-sheet/staff",
       },
-      {
-        id: "user",
-        label: "利用者向け調査票",
-        icon: PersonIcon,
-        path: "/survey-sheet/user",
-      },
+      // {
+      //   id: "user",
+      //   label: "利用者向け調査票",
+      //   icon: PersonIcon,
+      //   path: "/survey-sheet/user",
+      // },
     ],
   },
   {
     id: "records",
     label: "記録確認",
     icon: LeaderboardIcon,
+    color: "#64748B",
     children: [
       {
         id: "timeRcoed",
@@ -92,6 +94,7 @@ export const managementMenuItems = () => [
     id: "management",
     label: "管理",
     icon: ManageAccountsIcon,
+    color: "#F59E0B",
     children: [
       { id: "list", label: "職員一覧", icon: GroupIcon, path: "/c1" },
       {
