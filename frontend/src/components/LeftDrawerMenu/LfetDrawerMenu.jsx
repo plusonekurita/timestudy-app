@@ -1,27 +1,8 @@
 import "./LeftDrawerMenu.scss";
 
-import {
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Box,
-  Button,
-  Typography,
-  Collapse,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from "@mui/material";
-import {
-  ExpandMore as ExpandMoreIcon,
-  ChevronRight as ChevronRightIcon,
-  ViewModule as ViewModuleIcon,
-  Logout as LogoutIcon,
-} from "@mui/icons-material";
+import { List, ListItem, ListItemButton, ListItemIcon, ListItemText, Box, Button, Typography, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, } from "@mui/material";
+import { ExpandMore as ExpandMoreIcon, ChevronRight as ChevronRightIcon, ViewModule as ViewModuleIcon, Logout as LogoutIcon, } from "@mui/icons-material";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -30,7 +11,8 @@ import { managementMenuItems } from "../../constants/drawerMenuItem";
 import { performLogout } from "../../utils/auth";
 import LoadingOverlay from "../LoadingOverlay";
 
-const LeftDrawerMenu = () => {
+
+const LeftDrawerMenu = ({ onItemSelected }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(null);
@@ -57,6 +39,7 @@ const LeftDrawerMenu = () => {
           <ListItemButton
             onClick={() => {
               navigate("/menu");
+              onItemSelected && onItemSelected();
             }}
             className="nav-item"
           >
@@ -96,7 +79,10 @@ const LeftDrawerMenu = () => {
                   <ListItem key={child.id} disablePadding>
                     <ListItemButton
                       selected={activeSection === child.id}
-                      onClick={() => navigate(child.path)}
+                      onClick={() => {
+                        navigate(child.path);
+                        onItemSelected && onItemSelected();
+                      }}
                       className="child-button"
                     >
                       <ListItemIcon>

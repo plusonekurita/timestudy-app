@@ -110,7 +110,11 @@ const ProtectedLayout = () => {
             },
           }}
         >
-          <LeftDrawerMenu isAdmin={false} />
+          <LeftDrawerMenu
+            onItemSelected={() => {
+              if (isNarrow) setDrawerOpen(false);
+            }}
+          />
         </Drawer>
       )}
       {/* 左メニュー開閉ボタン */}
