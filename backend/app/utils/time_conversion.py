@@ -26,13 +26,11 @@ def normalize_to_10_minutes(time_block_data):
 def convert_with_time_split(records):
     result = {}
     for record in records:
-        label = record["name"]
+        label = int(record["no"])
 
         # 日本時間に変更
-        # start = datetime.fromisoformat(record["startTime"].replace("Z", "+00:00"))
-        # end = datetime.fromisoformat(record["endTime"].replace("Z", "+00:00"))
-        start = datetime.fromisoformat(record["startTime"].replace("Z", "+00:00")).astimezone(JST)
-        end = datetime.fromisoformat(record["endTime"].replace("Z", "+00:00")).astimezone(JST)
+        start = datetime.fromisoformat(record["startTime"])
+        end = datetime.fromisoformat(record["endTime"])
         current = start
 
         while current < end:
@@ -54,6 +52,8 @@ def convert_with_time_split(records):
 
     # 正規化（10分におさめる）
     for time_key in result:
-        result[time_key] = normalize_to_10_minutes(result[time_key])
+        # result[time_key] = normalize_to_10_minutes(result[time_key])
+        for label in result[time_key]:
+            result[time_key][label] = round(result[time_key][label] / 60)
 
     return result

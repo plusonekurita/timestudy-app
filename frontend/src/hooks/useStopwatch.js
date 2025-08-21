@@ -58,13 +58,12 @@ export const useStopwatch = () => {
         // 前回の記録
         const record = {
           id: `record-${startTime}-${Math.random().toString(36).substr(2, 9)}`, // ユニークID
+          no: activeItem.no,
           type: activeItem.type, // アイテムのタイプ
           name: activeItem.name, // アイテムの名前
           label: activeItem.label, // アイテムのラベル
-          // startTime: startTime, // アイテムの開始時刻
-          // endTime: endTime, // 終了時刻（新しいタイマーの開始時刻）
-          startTime: dayjs(startTime).tz(JST).toISOString(),
-          endTime: dayjs(endTime).tz(JST).toISOString(),
+          startTime: dayjs(startTime).tz(JST).format("YYYY-MM-DDTHH:mm:ssZ"),
+          endTime: dayjs(endTime).tz(JST).format("YYYY-MM-DDTHH:mm:ssZ"),
           duration, // 経過時間（秒）
         };
 
@@ -132,11 +131,12 @@ export const useStopwatch = () => {
 
       const record = {
         id: `record-${startTime}-${Math.random().toString(36).substr(2, 9)}`, // ユニークID
+        no: activeItem.no,
         type: activeItem.type,
         name: activeItem.name,
         label: activeItem.label,
-        startTime: dayjs(startTime).tz(JST).toISOString(),
-        endTime: dayjs(currentEndTime).tz(JST).toISOString(),
+        startTime: dayjs(startTime).tz(JST).format("YYYY-MM-DDTHH:mm:ssZ"),
+        endTime: dayjs(currentEndTime).tz(JST).format("YYYY-MM-DDTHH:mm:ssZ"),
         duration: durationSeconds,
         minutes: durationMinutes,
       };

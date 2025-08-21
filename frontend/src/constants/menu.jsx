@@ -24,6 +24,7 @@ export const menuCategories = [
     background: colors.directCareBackground,
     items: [
       {
+        no: 1,
         type: "directCare",
         label: "移動・移乗・体位交換",
         name: "transfer",
@@ -31,6 +32,7 @@ export const menuCategories = [
         color: colors.directCare,
       },
       {
+        no: 2,
         type: "directCare",
         label: "排泄介助・支援",
         name: "haisetu",
@@ -38,6 +40,7 @@ export const menuCategories = [
         color: colors.directCare,
       },
       {
+        no: 3,
         type: "directCare",
         label: "入浴・整容・更衣",
         name: "nyuyoku",
@@ -45,6 +48,7 @@ export const menuCategories = [
         color: colors.directCare, //TODO: アイコンを準備
       },
       {
+        no: 4,
         type: "directCare",
         label: "利用者コミュニケーション",
         name: "communication",
@@ -57,6 +61,7 @@ export const menuCategories = [
         color: colors.directCare,
       },
       {
+        no: 5,
         type: "directCare",
         label: "日常生活自立支援",
         name: "dailyLifeSupport",
@@ -64,6 +69,7 @@ export const menuCategories = [
         color: colors.directCare,
       },
       {
+        no: 6,
         type: "directCare",
         label: "行動上の問題への対応",
         name: "behavioralIssue",
@@ -71,6 +77,7 @@ export const menuCategories = [
         color: colors.directCare,
       },
       {
+        no: 7,
         type: "directCare",
         label: "食事支援",
         name: "mealSupport",
@@ -78,6 +85,7 @@ export const menuCategories = [
         color: colors.directCare,
       },
       {
+        no: 8,
         type: "directCare",
         label: "機能訓練・医療的処置",
         name: "rehabMedical",
@@ -85,6 +93,7 @@ export const menuCategories = [
         color: colors.directCare,
       },
       {
+        no: 9,
         type: "directCare",
         label: "その他の直接介護",
         name: "otherDirectCare",
@@ -99,6 +108,7 @@ export const menuCategories = [
     color: colors.indirectWork,
     items: [
       {
+        no: 10,
         type: "indirectWork",
         label: "巡回・移動",
         name: "move",
@@ -106,6 +116,7 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 11,
         type: "indirectWork",
         label: "記録・文章作成・連絡調整等",
         name: "recordCoordination",
@@ -113,22 +124,15 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 12,
         type: "indirectWork",
-        label: "アセスメント・情報収集",
+        label: "アセスメント・情報収集・介護計画の作成",
         name: "assessmentInfo",
         icon: <img src={customIcons.assesment} alt="アセスメント・情報収集" />,
         color: colors.indirectWork,
       },
       {
-        type: "indirectWork",
-        label: "介護計画の作成・見直し",
-        name: "carePlan",
-        icon: (
-          <img src={customIcons.kaigoKiroku} alt="介護計画の作成・見直し" />
-        ),
-        color: colors.indirectWork,
-      },
-      {
+        no: 13,
         type: "indirectWork",
         label: "見守り機器の使用・確認",
         name: "monitoringDevice",
@@ -136,6 +140,7 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 14,
         type: "indirectWork",
         label: "ロボ・ICT準備片付け",
         name: "robot",
@@ -143,6 +148,7 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 15,
         type: "indirectWork",
         label: "職員に対する指導・教育",
         name: "staffTraining",
@@ -150,6 +156,7 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 16,
         type: "indirectWork",
         label: "食事・おやつの配膳・下膳",
         name: "mealServing",
@@ -159,6 +166,7 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 17,
         type: "indirectWork",
         label: "入浴業務の準備等",
         name: "bathingPrep",
@@ -166,6 +174,7 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 18,
         type: "indirectWork",
         label: "リネン交換・ベッドメイク",
         name: "bedmaking",
@@ -175,6 +184,7 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 19,
         type: "indirectWork",
         label: "居室清掃・片付け",
         name: "cleaning",
@@ -182,6 +192,7 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 20,
         type: "indirectWork",
         label: "消毒などの感染症対応",
         name: "disinfection",
@@ -189,6 +200,7 @@ export const menuCategories = [
         color: colors.indirectWork,
       },
       {
+        no: 21,
         type: "indirectWork",
         label: "その他の間接業務",
         name: "otherIndirectWork",
@@ -203,6 +215,7 @@ export const menuCategories = [
     color: colors.break,
     items: [
       {
+        no: 22,
         type: "break",
         label: "休憩・待機・仮眠",
         name: "break",
@@ -217,6 +230,7 @@ export const menuCategories = [
     color: colors.other,
     items: [
       {
+        no: 23,
         type: "other",
         label: "その他",
         name: "other",
@@ -224,6 +238,7 @@ export const menuCategories = [
         color: colors.other,
       },
       {
+        no: 24,
         type: "other",
         label: "余裕時間",
         name: "bufferTime",

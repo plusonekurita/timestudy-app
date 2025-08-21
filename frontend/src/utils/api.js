@@ -9,7 +9,13 @@ const API_BASE = import.meta.env.VITE_API_URL || "/api";
  * @returns {Promise<any>} - レスポンスJSON
  */
 export const apiFetch = async (path, options = {}) => {
-  const { method = "GET", headers = {}, body = null, auth = true } = options;
+  const {
+    method = "GET",
+    headers = {},
+    body = null,
+    auth = true,
+    responseType = "json",
+  } = options;
 
   const finalHeaders = {
     "Content-Type": "application/json",
@@ -30,9 +36,8 @@ export const apiFetch = async (path, options = {}) => {
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    const data = await res.json().catch(() => null);
-
     if (!res.ok) {
+      const data = await res.json().catch(() => null);
       let message = "API Error";
       if (res.status === 404) {
         message = "指定されたAPIエンドポイントが見つかりません。";
@@ -51,7 +56,10 @@ export const apiFetch = async (path, options = {}) => {
       throw new Error(message);
     }
 
-    return data;
+    if (responseType === "blob") return await res.blob(); // 👈 ここで切り替え
+    if (responseType === "text") return await res.text();
+
+    return await res.json().catch(() => null);
   } catch (err) {
     if (err.name === "TypeError") {
       // ネットワーク障害やCORSなど

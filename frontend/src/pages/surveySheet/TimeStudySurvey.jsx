@@ -8,8 +8,6 @@ import FilterControls from "../../components/FilterControls/FilterControls";
 const TimeStudySurvey = () => {
   const timeStudyRecord = useSelector((state) => state.timeRecord.record);
 
-  console.log(timeStudyRecord);
-
   return (
     <PageSectionLayout>
       <Box

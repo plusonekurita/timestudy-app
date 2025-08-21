@@ -23,7 +23,6 @@ class LoginRequest(BaseModel):
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
     try:
         staff = db.query(Staffs).filter(Staffs.login_id == request.uid, Staffs.is_active == True).first()
-        print(staff)
 
         if not staff or not bcrypt.verify(request.password, staff.password):
             raise ApiException(401, "認証エラー", "ログインIDまたはパスワードが無効です")
@@ -43,6 +42,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
             "id": staff.id,
             "uid": staff.login_id,
             "officeId": staff.office_id,
+            "office": staff.office,
             "name": staff.name,
             "staffCode": staff.staff_code,
             "isAdmin": staff.is_admin,

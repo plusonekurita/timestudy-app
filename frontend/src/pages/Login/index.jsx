@@ -4,7 +4,6 @@ import "./style.scss";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 
 import { getValue, setItem } from "../../utils/localStorageUtils";
@@ -46,9 +45,9 @@ const LoginPage = () => {
   const dispatch = useDispatch();
 
   // 本日以外の日付の記録を処理する関数
-  const processOldRecords = async (id) => {
+  const processOldRecords = async (user) => {
     const todayKey = new Date().toISOString().split("T")[0];
-    const allDailyRecords = getValue(`dailyTimeStudyRecords_${id}`, {});
+    const allDailyRecords = getValue(`dailyTimeStudyRecords_${user.id}`, {});
     const remainingRecords = {};
     let saveCount = 0; // 保存件数をカウント
 
@@ -63,7 +62,7 @@ const LoginPage = () => {
           await apiFetch("/save-time-records", {
             method: "POST",
             body: {
-              user_id: id,
+              staff: user,
               record_date: dateKey,
               record: allDailyRecords[dateKey],
             },
@@ -84,7 +83,7 @@ const LoginPage = () => {
     }
 
     // すべて成功したらローカルを更新
-    setItem(`dailyTimeStudyRecords_${id}`, remainingRecords);
+    setItem(`dailyTimeStudyRecords_${user.id}`, remainingRecords);
     if (saveCount > 0) {
       dispatch(
         showSnackbar({
@@ -128,6 +127,7 @@ const LoginPage = () => {
         staffCode: data.staffCode,
         job: data.job,
         officeId: data.officeId,
+        office: data.office,
         isAdmin: data.isAdmin,
       };
 
@@ -151,7 +151,7 @@ const LoginPage = () => {
       );
 
       if (data.role !== "admin") {
-        await processOldRecords(data.id);
+        await processOldRecords(data);
       }
 
       // 管理者なら admin ページへ遷移

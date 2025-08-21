@@ -47,6 +47,7 @@ const FilterControls = () => {
       try {
         if (!staffList || staffList.length === 0) {
           const res = await apiFetch(`/offices/${user.officeId}/staffs`);
+          console.log(res);
           dispatch(setStaffList(res));
         }
       } catch (error) {
@@ -70,6 +71,8 @@ const FilterControls = () => {
     if (selectedStaff && selectedDate) {
       const dateStr = selectedDate.format("YYYY-MM-DD");
 
+      console.log(selectedStaff);
+
       dispatch(
         fetchTimeRecords({
           staffId: selectedStaff.id,
@@ -88,19 +91,28 @@ const FilterControls = () => {
     setAnchorEl(null);
   };
 
-  // 出力
+  // 出力 エクセル
   const handleExport = async () => {
-    console.log(timeStudyRecord);
-    const recordData = await apiFetch("/convert-time-records", {
+    const recordData = await apiFetch("/export_excel", {
       method: "POST",
+      responseType: "blob", // excel
       body: {
-        staff_id: timeStudyRecord.staff_id,
+        staff: user,
         record_date: timeStudyRecord.record_date,
         record: timeStudyRecord.record,
       },
     });
 
-    console.log(recordData);
+    const blob = await recordData;
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "タイムスタディ出力.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   const formatDate = (date) => {
@@ -171,7 +183,7 @@ const FilterControls = () => {
                   IconComponent={ExpandMoreIcon}
                 >
                   {staffList.map((staff) => (
-                    <MenuItem key={staff.id} value={staff.name}>
+                    <MenuItem key={staff.id} value={staff}>
                       {staff.name}
                     </MenuItem>
                   ))}

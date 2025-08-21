@@ -2,6 +2,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Integer, String, Date, Boolean, ForeignKey
 from datetime import datetime, timezone, timedelta
 from app.db.database import Base
+from sqlalchemy.orm import relationship
+from app.models.offices import Offices
 
 JST = timezone(timedelta(hours=9))
 
@@ -21,3 +23,5 @@ class Staffs(Base):
     update_at: Mapped[datetime] = mapped_column(Date, default=lambda: datetime.now(JST).date(), onupdate=lambda: datetime.now(JST).date())
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    office: Mapped["Offices"] = relationship("Offices", backref="staffs")
