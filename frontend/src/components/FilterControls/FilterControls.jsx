@@ -71,8 +71,6 @@ const FilterControls = () => {
     if (selectedStaff && selectedDate) {
       const dateStr = selectedDate.format("YYYY-MM-DD");
 
-      console.log(selectedStaff);
-
       dispatch(
         fetchTimeRecords({
           staffId: selectedStaff.id,
@@ -98,8 +96,8 @@ const FilterControls = () => {
       responseType: "blob", // excel
       body: {
         staff: user,
-        record_date: timeStudyRecord.record_date,
-        record: timeStudyRecord.record,
+        record_date: timeStudyRecord[0].record_date,
+        record: timeStudyRecord[0].record,
       },
     });
 

@@ -3,6 +3,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 import { apiFetch } from "../../utils/api";
 
+
 // 非同期アクション
 export const fetchTimeRecords = createAsyncThunk(
   "timeRecords/fetch",
@@ -11,7 +12,7 @@ export const fetchTimeRecords = createAsyncThunk(
       method: "POST",
       body: { staff_id: staffId, start_date: startDate, end_date: endDate },
     });
-    return response.record;
+    return response.records;
   }
 );
 

@@ -23,3 +23,43 @@ export const colors = {
   pro: "#2196F3", // #E0F7FA
   basic: "#607D8B",
 };
+
+// グラフに使用される色
+export const graphColors = {
+  items: {
+    // 直接介護
+    transfer: "#C62828",
+    haisetu: "#6D4C41",
+    nyuyoku: "#0277BD",
+    communication: "#6A1B9A",
+    dailyLifeSupport: "#2E7D32",
+    behavioralIssue: "#e76e6eff",
+    mealSupport: "#EF6C00",
+    rehabMedical: "#1565C0",
+    otherDirectCare: "#8E24AA",
+    // 間接業務
+    move: "#00796B",
+    recordCoordination: "#455A64",
+    assessmentInfo: "#7B1FA2",
+    monitoringDevice: "#00838F",
+    robot: "#039BE5",
+    staffTraining: "#AD1457",
+    mealServing: "rgba(255, 152, 121, 1)",
+    bathingPrep: "#00ACC1",
+    bedmaking: "#FF8F00",
+    cleaning: "#558B2F",
+    disinfection: "#B71C1C",
+    otherIndirectWork: "#616161",
+    // 休憩・その他
+    break: "#F39C12",
+    other: "#757575",
+    bufferTime: "#546E7A",
+  },
+  fallbackByType: {
+    directCare: "#E74C3C",
+    indirectWork: "#27AE60",
+    break: "#F1C40F",
+    other: "#818181",
+  },
+  default: "#9e9e9e",
+};

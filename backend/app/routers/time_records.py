@@ -85,17 +85,17 @@ def get_range_record(request: TimeRecordRangeRequest, db: Session = Depends(get_
         # end_date がない or start_date と同じ → 単一日付の扱い
         if not request.end_date or request.start_date == request.end_date:
             query = query.filter(TimeRecord.record_date == request.start_date)
-            record = query.first()
+            records = query.first()
 
-            if not record:
+            if not records:
                 return {
                     "message": "記録は見つかりませんでした。",
-                    "record": None
+                    "records": None
                 }
 
             return {
                 "message": "1件の記録を取得しました。",
-                "record": record.__dict__
+                "records": [records.__dict__]
             }
 
         # 範囲指定 → 複数件

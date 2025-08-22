@@ -14,7 +14,6 @@ import { showSnackbar } from "./store/slices/snackbarSlice";
 import { hideSnackbar } from "./store/slices/snackbarSlice";
 import ProtectedLayout from "./components/ProtectedLayout";
 import StaffSurvey from "./pages/surveySheet/StaffSurvey";
-import UserSurvey from "./pages/surveySheet/UserSurvey";
 import SectionCompletePage from "./pages/sheetComplete";
 import SheetListPage from "./pages/sheetList";
 import { performLogout } from "./utils/auth";
@@ -26,6 +25,7 @@ import TopMenu from "./pages/TopMenu";
 import LoginPage from "./pages/Login";
 import AdminPage from "./pages/Admin";
 import MainPage from "./pages/Main";
+
 
 // アイドルタイマーの設定時間 TODO: タイムスタディなので必要なのか検討
 const IDLE_TIMEOUT = 6 * 60 * 60 * 1000; // 6時間
@@ -101,7 +101,6 @@ function App() {
 
             <Route path="/survey-sheet/time" element={<TimeStudySurvey />} />
             <Route path="/survey-sheet/staff" element={<StaffSurvey />} />
-            <Route path="/survey-sheet/user" element={<UserSurvey />} />
 
             {/* ここにページを追加 */}
           </Route>

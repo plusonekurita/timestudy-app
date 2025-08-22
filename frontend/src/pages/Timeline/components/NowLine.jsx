@@ -18,12 +18,12 @@ const NowLine = ({
     ) {
       const container = refObj.current;
 
-      // ⏰ 現在の時間（hour）を取得
+      // 現在の時間（hour）を取得
       const now = new Date();
       const nowHour = now.getHours();
       const currentHourHeight = hourHeights[nowHour] || 0;
 
-      // 📦 スクロールターゲット位置を補正
+      // スクロールターゲット位置を補正
       const scrollTarget =
         nowTop - container.clientHeight / 2 - currentHourHeight / 2;
 

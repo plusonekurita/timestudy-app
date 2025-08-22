@@ -1,5 +1,5 @@
 import { customIcons, topMenuIcons } from "../assets/icons";
-import { colors } from "./theme";
+import { colors, graphColors } from "./theme";
 
 // メニュー画面アイコン
 export const menuItems = [
@@ -30,6 +30,7 @@ export const menuCategories = [
         name: "transfer",
         icon: <img src={customIcons.transfer} alt="移動・移乗・体位交換" />,
         color: colors.directCare,
+        graphColor: graphColors.transfer,
       },
       {
         no: 2,
@@ -38,6 +39,7 @@ export const menuCategories = [
         name: "haisetu",
         icon: <img src={customIcons.toilet} alt="排泄介助・支援" />,
         color: colors.directCare,
+        graphColor: graphColors.haisetu,
       },
       {
         no: 3,
@@ -46,6 +48,7 @@ export const menuCategories = [
         name: "nyuyoku",
         icon: <img src={customIcons.nyuyoku} alt="入浴・整容・更衣" />,
         color: colors.directCare, //TODO: アイコンを準備
+        graphColor: graphColors.nyuyoku,
       },
       {
         no: 4,
@@ -59,6 +62,7 @@ export const menuCategories = [
           />
         ),
         color: colors.directCare,
+        graphColor: graphColors.communication,
       },
       {
         no: 5,
@@ -67,6 +71,7 @@ export const menuCategories = [
         name: "dailyLifeSupport",
         icon: <img src={customIcons.jiritu} alt="日常生活自立支援" />,
         color: colors.directCare,
+        graphColor: graphColors.dailyLifeSupport,
       },
       {
         no: 6,
@@ -75,6 +80,7 @@ export const menuCategories = [
         name: "behavioralIssue",
         icon: <img src={customIcons.mondai} alt="行動上の問題への対応" />,
         color: colors.directCare,
+        graphColor: graphColors.behavioralIssue,
       },
       {
         no: 7,
@@ -83,6 +89,7 @@ export const menuCategories = [
         name: "mealSupport",
         icon: <img src={customIcons.meal} alt="食事支援" />,
         color: colors.directCare,
+        graphColor: graphColors.mealSupport,
       },
       {
         no: 8,
@@ -91,6 +98,7 @@ export const menuCategories = [
         name: "rehabMedical",
         icon: <img src={customIcons.iryou} alt="機能訓練・医療的処置" />,
         color: colors.directCare,
+        graphColor: graphColors.rehabMedical,
       },
       {
         no: 9,
@@ -99,6 +107,7 @@ export const menuCategories = [
         name: "otherDirectCare",
         icon: <img src={customIcons.careOther} alt="その他の直接介護" />,
         color: colors.directCare,
+        graphColor: graphColors.otherDirectCare,
       },
     ],
   },
@@ -114,6 +123,7 @@ export const menuCategories = [
         name: "move",
         icon: <img src={customIcons.work} alt="巡回・移動" />,
         color: colors.indirectWork,
+        graphColor: graphColors.move,
       },
       {
         no: 11,
@@ -122,14 +132,16 @@ export const menuCategories = [
         name: "recordCoordination",
         icon: <img src={customIcons.record} alt="記録・文章作成・連絡調整等" />,
         color: colors.indirectWork,
+        graphColor: graphColors.recordCoordination,
       },
       {
         no: 12,
         type: "indirectWork",
-        label: "アセスメント・情報収集・介護計画の作成",
+        label: "アセス・情報収集・計画",
         name: "assessmentInfo",
-        icon: <img src={customIcons.assesment} alt="アセスメント・情報収集" />,
+        icon: <img src={customIcons.assesment} alt="アセス・情報収集・計画" />,
         color: colors.indirectWork,
+        graphColor: graphColors.assessmentInfo,
       },
       {
         no: 13,
@@ -138,6 +150,7 @@ export const menuCategories = [
         name: "monitoringDevice",
         icon: <img src={customIcons.mimamori} alt="見守り機器の使用・確認" />,
         color: colors.indirectWork,
+        graphColor: graphColors.monitoringDevice,
       },
       {
         no: 14,
@@ -146,6 +159,7 @@ export const menuCategories = [
         name: "robot",
         icon: <img src={customIcons.robo} alt="ロボ・ICT準備片付け" />,
         color: colors.indirectWork,
+        graphColor: graphColors.robot,
       },
       {
         no: 15,
@@ -154,6 +168,7 @@ export const menuCategories = [
         name: "staffTraining",
         icon: <img src={customIcons.kyouiku} alt="職員に対する指導・教育" />,
         color: colors.indirectWork,
+        graphColor: graphColors.staffTraining,
       },
       {
         no: 16,
@@ -164,6 +179,7 @@ export const menuCategories = [
           <img src={customIcons.haizen} alt="食事・おやつの配膳・下膳など" />
         ),
         color: colors.indirectWork,
+        graphColor: graphColors.mealServing,
       },
       {
         no: 17,
@@ -172,6 +188,7 @@ export const menuCategories = [
         name: "bathingPrep",
         icon: <img src={customIcons.cleanBath} alt="入浴業務の準備等" />,
         color: colors.indirectWork,
+        graphColor: graphColors.bathingPrep,
       },
       {
         no: 18,
@@ -182,6 +199,7 @@ export const menuCategories = [
           <img src={customIcons.bedMaking} alt="リネン交換・ベッドメイク" />
         ),
         color: colors.indirectWork,
+        graphColor: graphColors.bedmaking,
       },
       {
         no: 19,
@@ -190,6 +208,7 @@ export const menuCategories = [
         name: "cleaning",
         icon: <img src={customIcons.clean} alt="居室清掃・片付け" />,
         color: colors.indirectWork,
+        graphColor: graphColors.cleaning,
       },
       {
         no: 20,
@@ -198,6 +217,7 @@ export const menuCategories = [
         name: "disinfection",
         icon: <img src={customIcons.disinfection} alt="消毒などの感染症対応" />,
         color: colors.indirectWork,
+        graphColor: graphColors.disinfection,
       },
       {
         no: 21,
@@ -206,6 +226,7 @@ export const menuCategories = [
         name: "otherIndirectWork",
         icon: <img src={customIcons.workOther} alt="その他の間接業務" />,
         color: colors.indirectWork,
+        graphColor: graphColors.otherIndirectWork,
       },
     ],
   },
@@ -221,6 +242,7 @@ export const menuCategories = [
         name: "break",
         icon: <img src={customIcons.break} alt="休憩・待機・仮眠" />,
         color: colors.break,
+        graphColor: graphColors.break,
       },
     ],
   },
@@ -236,6 +258,7 @@ export const menuCategories = [
         name: "other",
         icon: <img src={customIcons.other} alt="その他" />,
         color: colors.other,
+        graphColor: graphColors.other,
       },
       {
         no: 24,
@@ -244,6 +267,7 @@ export const menuCategories = [
         name: "bufferTime",
         icon: <img src={customIcons.yoyuu} alt="余裕時間" />,
         color: colors.other,
+        graphColor: graphColors.bufferTime,
       },
     ],
   },
