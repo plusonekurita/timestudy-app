@@ -11,10 +11,10 @@ export default function EdgeMenuHandle({
   open,
   drawerWidth,
   isNarrow, // 1000px以上かどうか
-  visible,
+  visible, // モバイル版か
   onToggle,
 }) {
-  if (!visible) return null;
+  if (!visible || !isNarrow) return null;
 
   return (
     <Box
