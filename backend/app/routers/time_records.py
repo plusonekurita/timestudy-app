@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, AliasChoices, ConfigDict
 from datetime import date, datetime
-from typing import List
+from typing import Optional, List, Union, Literal
 from app.db.database import get_db
 from app.models.time_record import TimeRecord
+from collections import OrderedDict
+from app.models.staffs import Staffs
 from app.utils.time_conversion import convert_with_time_split
 from app.services.excel_writer import load_excel_template, write_records_to_excel
 from fastapi.responses import FileResponse
@@ -43,6 +45,28 @@ class TimeRecordRangeRequest(BaseModel):
     start_date: date # YYYY-MM-DD
     end_date: date # YYYY-MM-DD
 
+# 全スタッフor各スタッフ記録取得
+class TimeRecordsByOfficeRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    office_id: int
+    start_date: date
+    end_date: Optional[date] = None
+
+    # "all" / 1人 / 複数 のいずれも受け付ける。後方互換のためエイリアスを広めに
+    staff: Optional[Union[Literal["all"], int, List[int]]] = Field(
+        default="all",
+        description='対象スタッフ。"all" または ID または ID配列',
+        validation_alias=AliasChoices("staff", "staff_id", "staff_ids", "staffIds"),
+        serialization_alias="staff",
+    )
+
+    # 任意: 所属内の特定職員だけに絞り込みたい場合
+    staff_ids: Optional[List[int]] = None
+    # True のとき、レコード0件の職員も grouped に空配列で含める
+    include_empty_staff: bool = False
+
+
+
 @router.post("/save-time-records")
 def create_time_record(request: TimeRecordRequest, db: Session = Depends(get_db)):
     try:
@@ -74,9 +98,9 @@ def create_time_record(request: TimeRecordRequest, db: Session = Depends(get_db)
         print("エラー:", str(e))
         raise HTTPException(status_code=500, detail="DB保存に失敗しました")
 
+# 職員ごとの記録取得
 @router.post("/get-time-records")
 def get_range_record(request: TimeRecordRangeRequest, db: Session = Depends(get_db)):
-    print(request)
     try:
         query = db.query(TimeRecord).filter(
             TimeRecord.staff_id == request.staff_id
@@ -121,6 +145,72 @@ def get_range_record(request: TimeRecordRangeRequest, db: Session = Depends(get_
         print("❌ 記録取得エラー:", str(e))
         raise HTTPException(status_code=500, detail="記録取得中にエラーが発生しました")
 
+# 事業所全体の担当者の記録
+@router.post("/get-time-records/by-office")
+def get_range_records_by_office(request: TimeRecordsByOfficeRequest, db: Session = Depends(get_db)):
+    try:
+        # ① 職員を id 昇順で取得
+        staff_q = db.query(Staffs.id, Staffs.name).filter(Staffs.office_id == request.office_id)
+        if request.staff_ids:
+            staff_q = staff_q.filter(Staffs.id.in_(request.staff_ids))
+        staff_q = staff_q.order_by(Staffs.id.asc())             # ← 追加
+        staff_rows = staff_q.all()
+        if not staff_rows:
+            return {"message": "該当する職員がいませんでした。", "records": [], "staff": [], "grouped_by_staff": {}}
+
+        staff_ids = [s.id for s in staff_rows]
+        staff_map = {s.id: s.name for s in staff_rows}
+
+        # ② レコード取得（並び順：staff_id → record_date）
+        q = db.query(TimeRecord).filter(TimeRecord.staff_id.in_(staff_ids))
+        if not request.end_date or request.start_date == request.end_date:
+            q = q.filter(TimeRecord.record_date == request.start_date)
+            msg_date = f"{request.start_date}"
+        else:
+            q = q.filter(
+                TimeRecord.record_date >= request.start_date,
+                TimeRecord.record_date <= request.end_date,
+            )
+            msg_date = f"{request.start_date} 〜 {request.end_date}"
+
+        q = q.order_by(TimeRecord.staff_id.asc(), TimeRecord.record_date.asc())  # ← 並び順を統一
+        rows = q.all()
+
+        # シリアライズ
+        def serialize(r: TimeRecord):
+            d = {k: v for k, v in r.__dict__.items() if k != "_sa_instance_state"}
+            d["staff_name"] = staff_map.get(r.staff_id)
+            return d
+
+        flat = [serialize(r) for r in rows]
+
+        # ③ grouped_by_staff を id 昇順で構築（空も含めたい場合は先に空配列を用意）
+        grouped = OrderedDict()
+        if request.include_empty_staff:
+            for sid in staff_ids:                 # id 昇順でキーを追加
+                grouped[str(sid)] = []            # JSONではキーは文字列
+
+        # レコードを詰める
+        for r in rows:
+            key = str(r.staff_id)
+            if key not in grouped:
+                grouped[key] = []                 # include_empty_staff=False のとき
+            grouped[key].append(serialize(r))
+
+        # include_empty_staff=False でも id 順に揃えて返す
+        if not request.include_empty_staff:
+            grouped = OrderedDict((str(sid), grouped.get(str(sid), [])) for sid in staff_ids if str(sid) in grouped)
+
+        return {
+            "message": f"{msg_date}：{len(staff_ids)}名 / {len(rows)}件の記録を取得しました。",
+            "records": flat,
+            "grouped_by_staff": grouped,                             # ← id 昇順
+            "staff": [{"id": s.id, "name": s.name} for s in staff_rows],  # ← id 昇順
+        }
+
+    except Exception as e:
+        print("❌ 所属別記録取得エラー:", str(e))
+        raise HTTPException(status_code=500, detail="所属別の記録取得中にエラーが発生しました")
 
 @router.post("/convert-time-records")
 def convert_time_records(request: TimeRecordRequest):
@@ -138,7 +228,6 @@ def convert_time_records(request: TimeRecordRequest):
     except Exception as e:
         print("❌ 変換エラー:", str(e))
         raise HTTPException(status_code=500, detail="変換処理に失敗しました")
-
 
 # エクセルファイル出力
 @router.post("/export_excel")

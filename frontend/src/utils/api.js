@@ -53,7 +53,8 @@ export const apiFetch = async (path, options = {}) => {
         message = res.statusText;
       }
 
-      throw new Error(message);
+      // throw new Error(message);
+      throw Object.assign(new Error(message), { status: res.status });
     }
 
     if (responseType === "blob") return await res.blob(); // 👈 ここで切り替え

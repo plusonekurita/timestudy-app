@@ -6,26 +6,27 @@ import { useSelector, useDispatch } from "react-redux";
 import { useIdleTimer } from "react-idle-timer";
 import { useState, useEffect } from "react";
 
+import TimeStudySurvey from "./pages/pc/surveySheet/TimeStudySurvey";
 import NotificationSnackbar from "./components/NotificationSnackbar";
-import TimeStudySurvey from "./pages/surveySheet/TimeStudySurvey";
 import { StopwatchProvider } from "./constants/StopwatchProvider";
+import SectionCompletePage from "./pages/mobile/sheetComplete";
 import IdleTimeoutDialog from "./components/IdleTimeoutDialog";
-import { showSnackbar } from "./store/slices/snackbarSlice";
+import StaffSurvey from "./pages/pc/surveySheet/StaffSurvey";
 import { hideSnackbar } from "./store/slices/snackbarSlice";
 import ProtectedLayout from "./components/ProtectedLayout";
-import StaffSurvey from "./pages/surveySheet/StaffSurvey";
-import SectionCompletePage from "./pages/sheetComplete";
-import SheetListPage from "./pages/sheetList";
+import Management from "./pages/pc/management/Management";
+import StaffList from "./pages/pc/management/StaffList";
+import StaffForm from "./pages/pc/management/StaffForm";
+import SheetListPage from "./pages/mobile/sheetList";
+import TimelineView from "./pages/mobile/Timeline";
+import StaffSheet from "./pages/mobile/staffSheet";
+import RecordsPage from "./pages/mobile/Record";
+import { TimeStudy } from "./pages/pc/record";
 import { performLogout } from "./utils/auth";
-import TimelineView from "./pages/Timeline";
-import StaffSheet from "./pages/staffSheet";
-import RecordsPage from "./pages/Record";
-import { apiFetch } from "./utils/api";
+import MainPage from "./pages/mobile/Main";
 import TopMenu from "./pages/TopMenu";
 import LoginPage from "./pages/Login";
 import AdminPage from "./pages/Admin";
-import MainPage from "./pages/Main";
-
 
 // アイドルタイマーの設定時間 TODO: タイムスタディなので必要なのか検討
 const IDLE_TIMEOUT = 6 * 60 * 60 * 1000; // 6時間
@@ -98,9 +99,17 @@ function App() {
               path="/sheetList/complete"
               element={<SectionCompletePage />}
             />
-
             <Route path="/survey-sheet/time" element={<TimeStudySurvey />} />
             <Route path="/survey-sheet/staff" element={<StaffSurvey />} />
+
+            <Route path="/record">
+              <Route path="time" element={<TimeStudy />} />
+            </Route>
+
+            <Route path="management" element={<Management />}>
+              <Route path="list" element={<StaffList />} />
+              <Route path="add" element={<StaffForm />} />
+            </Route>
 
             {/* ここにページを追加 */}
           </Route>

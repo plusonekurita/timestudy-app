@@ -2,14 +2,18 @@ import "./TopMenuDesktop.scss";
 
 import { Box, Typography, Grid, Divider } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect } from "react";
 import { motion } from "motion/react";
+import React from "react";
 
 import { managementMenuItems } from "../../constants/drawerMenuItem";
 import { DashboardCard } from "./DashboardCard/DashboardCard";
+import { getValue } from "../../utils/localStorageUtils";
+
 
 const TopMenuDesktop = () => {
   const navigate = useNavigate();
+
+  const user = getValue("user");
 
   const renderContent = () => {
     const menuItems = managementMenuItems();
@@ -21,30 +25,37 @@ const TopMenuDesktop = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {menuItems.map((section) => (
-            <Box key={section.id} sx={{ pb: 3 }}>
-              {/* 見出し */}
-              <Typography variant="h5" className="content__header" gutterBottom>
-                {section.label}
-              </Typography>
+          {menuItems.map((section) => {
+            if (section.isAdmin && !user.isAdmin) return;
+            return (
+              <Box key={section.id} sx={{ pb: 3 }}>
+                {/* 見出し */}
+                <Typography
+                  variant="h5"
+                  className="content__header"
+                  gutterBottom
+                >
+                  {section.label}
+                </Typography>
 
-              <Divider sx={{ mb: 2.5 }} />
+                <Divider sx={{ mb: 2.5 }} />
 
-              {/* グリッドでDashboardCardを配置 */}
-              <Grid container spacing={4} className="content__button">
-                {section.children?.map((child) => (
-                  <Grid size={3} key={child.id} className="icon-button">
-                    <DashboardCard
-                      title={child.label}
-                      icon={child.icon}
-                      onClick={() => navigate(child.path)}
-                      classname="card"
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          ))}
+                {/* グリッドでDashboardCardを配置 */}
+                <Grid container spacing={4} className="content__button">
+                  {section.children?.map((child) => (
+                    <Grid size={3} key={child.id} className="icon-button">
+                      <DashboardCard
+                        title={child.label}
+                        icon={child.icon}
+                        onClick={() => navigate(child.path)}
+                        classname="card"
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            );
+          })}
         </motion.div>
       </Box>
     );

@@ -2,12 +2,12 @@ import "./LeftDrawerMenu.scss";
 
 import { List, ListItem, ListItemButton, ListItemIcon, ListItemText, Box, Button, Typography, Collapse, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, } from "@mui/material";
 import { ExpandMore as ExpandMoreIcon, ChevronRight as ChevronRightIcon, ViewModule as ViewModuleIcon, Logout as LogoutIcon, } from "@mui/icons-material";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import React, { useState } from "react";
 
 import { managementMenuItems } from "../../constants/drawerMenuItem";
+import { getValue } from "../../utils/localStorageUtils";
 import { performLogout } from "../../utils/auth";
 import LoadingOverlay from "../LoadingOverlay";
 
@@ -20,9 +20,10 @@ const LeftDrawerMenu = ({ onItemSelected }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
+  const user = getValue("user");
+
   let menuItems;
   menuItems = managementMenuItems(setLoading);
-
   const handleLogout = () => {
     performLogout(dispatch);
   };
@@ -31,7 +32,7 @@ const LeftDrawerMenu = ({ onItemSelected }) => {
     <Box className="sidebar">
       <LoadingOverlay loading={loading} />
       <Box className="sidebar__header">
-        <Typography variant="h6">プラスワン</Typography>
+        <Typography variant="h6">{user.office?.name}</Typography>
       </Box>
 
       <List className="sidebar__nav">
@@ -59,6 +60,7 @@ const LeftDrawerMenu = ({ onItemSelected }) => {
                   setActiveSection(item.id);
                 }}
                 className="nav-item"
+                disabled={item.isAdmin ? !user.isAdmin : false}
               >
                 <ListItemIcon>
                   <item.icon fontSize="small" />
