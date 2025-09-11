@@ -28,6 +28,7 @@ export const apiFetch = async (path, options = {}) => {
       finalHeaders["Authorization"] = `Bearer ${token}`;
     }
   }
+  console.log("API URL:", import.meta.env.VITE_API_URL);
 
   try {
     const res = await fetch(`${API_BASE}${path}`, {
