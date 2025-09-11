@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List
@@ -35,6 +35,11 @@ class StaffResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+# スタッフ削除
+class StaffDelete(BaseModel):
+    id: int = Field(..., description="削除対象スタッフのID")
+    staff_code: str = Field(..., min_length=1, description="削除対象スタッフの職員コード")
 
 
 @router.get("/offices/{office_id}/staffs", response_model=List[StaffResponse])
@@ -101,3 +106,35 @@ def create_staff(office_id: int, payload: StaffCreate, db: Session = Depends(get
         db.rollback()
         print("❌ スタッフ追加エラー:", str(e))
         raise HTTPException(status_code=500, detail="スタッフ登録中にエラーが発生しました")
+
+
+# スタッフ削除
+@router.delete("/offices/{office_id}/staffs",status_code=status.HTTP_204_NO_CONTENT)
+def delete_staff(office_id: int, payload: StaffDelete, db: Session = Depends(get_db)):
+    """
+    office_id（パス）と、body の id / staff_code が一致するレコードのみ削除。
+    """
+    try:
+        target = (
+            db.query(Staffs)
+            .filter(
+                Staffs.office_id == office_id,
+                Staffs.id == payload.id,
+                Staffs.staff_code == payload.staff_code,
+            )
+            .first()
+        )
+
+        if not target:
+            raise HTTPException(status_code=404, detail="該当するスタッフが見つかりませんでした。")
+
+        db.delete(target)
+        db.commit()
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print("❌ スタッフ削除エラー:", str(e))
+        raise HTTPException(status_code=500, detail="スタッフ削除中にエラーが発生しました")
