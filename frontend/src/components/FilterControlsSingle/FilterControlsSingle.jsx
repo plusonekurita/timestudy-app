@@ -24,14 +24,16 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 
-import {
-  fetchTimeRecords,
-  fetchOfficeTimeRecords,
-} from "../../store/slices/timeRecordSlice";
+import { fetchOfficeTimeRecords } from "../../store/slices/timeRecordSlice";
+import { getValue, setItem } from "../../utils/localStorageUtils";
 import { setStaffList } from "../../store/slices/staffSlice";
-import { getValue } from "../../utils/localStorageUtils";
 import { isEmpty } from "../../utils/isEmpty";
 import { apiFetch } from "../../utils/api";
+
+// 選択日付保存キー
+const LS_KEYS = {
+  singleDate: "ts_single_date",
+};
 
 const FilterControlsSingle = () => {
   const location = useLocation();
@@ -48,13 +50,23 @@ const FilterControlsSingle = () => {
 
   const sheetPage = location.pathname.startsWith("/survey-sheet");
 
+  // ★ 起動時にローカル保存した単日を復元
+  useEffect(() => {
+    const saved = getValue(LS_KEYS.singleDate);
+    if (saved) {
+      const d = dayjs(saved);
+      if (d.isValid()) {
+        setSelectedDate(d);
+      }
+    }
+  }, []);
+
   // 管理者のみ職員リスト一覧の取得
   useEffect(() => {
     const fetchStaffList = async () => {
       try {
         if (!staffList || staffList.length === 0) {
           const res = await apiFetch(`/offices/${user.officeId}/staffs`);
-          console.log(res);
           dispatch(setStaffList(res));
         }
       } catch (error) {
@@ -65,45 +77,42 @@ const FilterControlsSingle = () => {
     if (isAdmin && user?.officeId) {
       fetchStaffList();
     }
-  }, []);
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     if (!isAdmin) {
       setSelectedStaff(user);
     }
-  }, []);
+  }, []); // eslint-disable-line
 
-  // 日付or職員選択でタイムスタディレコードの取得
+  // 日付or職員選択でタイムスタディレコードの取得（単日）
   useEffect(() => {
-    if (selectedStaff && selectedDate) {
-      const dateStr = selectedDate.format("YYYY-MM-DD");
-      if (selectedStaff === "all") {
-        dispatch(
-          fetchOfficeTimeRecords({
-            officeId: user.office.id,
-            startDate: dateStr,
-            endDate: dateStr,
-            // staffIds: 職員を絞り込みたいとき（未実装）
-            includeEmptyStaff: true, // 記録がない職員も取得
-          })
-        );
-      } else {
-        dispatch(
-          fetchTimeRecords({
-            staffId: selectedStaff.id,
-            startDate: dateStr,
-            endDate: dateStr,
-          })
-        );
-      }
-    }
-  }, [selectedStaff, selectedDate]);
+    if (!user?.office?.id || !selectedStaff || !selectedDate) return;
+
+    const dateStr = selectedDate.format("YYYY-MM-DD");
+    const staffParam = selectedStaff === "all" ? "all" : selectedStaff.id;
+
+    dispatch(
+      fetchOfficeTimeRecords({
+        officeId: user.office.id,
+        startDate: dateStr,
+        endDate: dateStr,
+        staff: staffParam,
+      })
+    );
+  }, [dispatch, user?.office?.id, selectedStaff, selectedDate]);
 
   const handleStaffChange = (event) => {
     setSelectedStaff(event.target.value);
   };
+
+  // ★ 日付選択時にローカル保存
   const handleDateChange = (newValue) => {
+    console.log(newValue);
     setSelectedDate(newValue);
+    if (newValue && dayjs(newValue).isValid()) {
+      setItem(LS_KEYS.singleDate, dayjs(newValue).format("YYYY-MM-DD"));
+    }
     setAnchorEl(null);
   };
 
@@ -111,7 +120,7 @@ const FilterControlsSingle = () => {
   const handleExport = async () => {
     const recordData = await apiFetch("/export_excel", {
       method: "POST",
-      responseType: "blob", // excel
+      responseType: "blob",
       body: {
         staff: user,
         record_date: timeStudyRecord[0].record_date,

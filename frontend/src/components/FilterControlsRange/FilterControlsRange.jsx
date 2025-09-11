@@ -25,14 +25,17 @@ import { useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
 
-import {
-  fetchTimeRecords,
-  fetchOfficeTimeRecords,
-} from "../../store/slices/timeRecordSlice";
+import { fetchOfficeTimeRecords } from "../../store/slices/timeRecordSlice";
+import { getValue, setItem } from "../../utils/localStorageUtils";
 import { setStaffList } from "../../store/slices/staffSlice";
-import { getValue } from "../../utils/localStorageUtils";
 import { isEmpty } from "../../utils/isEmpty";
 import { apiFetch } from "../../utils/api";
+
+// 選択日付保存キー
+const LS_KEYS = {
+  rangeStart: "ts_range_start",
+  rangeEnd: "ts_range_end",
+};
 
 const RangePickersDay = styled(PickersDay, {
   shouldForwardProp: (prop) =>
@@ -62,7 +65,6 @@ function RangeDay(props) {
   const { day, outsideCurrentMonth, start, end, ...other } = props;
   const isStart = !!(start && day.isSame(start, "day"));
   const isEnd = !!(end && day.isSame(end, "day"));
-  // 中間日のハイライト（端は除く）
   const isMid =
     !!start && !!end && day.isAfter(start, "day") && day.isBefore(end, "day");
 
@@ -95,13 +97,26 @@ const FilterControlsRange = () => {
 
   const sheetPage = location.pathname.startsWith("/survey-sheet");
 
+  // ★ 起動時にローカル保存した範囲を復元
+  useEffect(() => {
+    const s = getValue(LS_KEYS.rangeStart);
+    const e = getValue(LS_KEYS.rangeEnd);
+    if (s && e) {
+      const sd = dayjs(s);
+      const ed = dayjs(e);
+      if (sd.isValid() && ed.isValid()) {
+        setSelectedRange([sd, ed]);
+        setDraftRange([sd, ed]);
+      }
+    }
+  }, []);
+
   // 管理者のみ職員リスト一覧の取得
   useEffect(() => {
     const fetchStaffList = async () => {
       try {
         if (!staffList || staffList.length === 0) {
           const res = await apiFetch(`/offices/${user.officeId}/staffs`);
-          console.log(res);
           dispatch(setStaffList(res));
         }
       } catch (error) {
@@ -112,41 +127,32 @@ const FilterControlsRange = () => {
     if (user?.isAdmin && user?.officeId) {
       fetchStaffList();
     }
-  }, []);
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     if (!user.isAdmin) {
       setSelectedStaff(user);
     }
-  }, []);
+  }, []); // eslint-disable-line
 
   // 日付範囲 or 職員選択でレコード取得
   useEffect(() => {
     const [start, end] = selectedRange || [];
-    if (selectedStaff && start && end) {
-      const startStr = start.format("YYYY-MM-DD");
-      const endStr = end.format("YYYY-MM-DD");
-      if (selectedStaff === "all") {
-        dispatch(
-          fetchOfficeTimeRecords({
-            officeId: user.office.id,
-            startDate: startStr,
-            endDate: endStr,
-            // staffIds: 職員を絞り込みたいとき（未実装）
-            includeEmptyStaff: true, // 記録がない職員も取得
-          })
-        );
-      } else {
-        dispatch(
-          fetchTimeRecords({
-            staffId: selectedStaff.id,
-            startDate: startStr,
-            endDate: endStr,
-          })
-        );
-      }
-    }
-  }, [selectedStaff, selectedRange]);
+    if (!user?.office?.id || !selectedStaff || !start || !end) return;
+
+    const startStr = start.format("YYYY-MM-DD");
+    const endStr = end.format("YYYY-MM-DD");
+    const staffParam = selectedStaff === "all" ? "all" : selectedStaff.id;
+
+    dispatch(
+      fetchOfficeTimeRecords({
+        officeId: user.office.id,
+        startDate: startStr,
+        endDate: endStr,
+        staff: staffParam,
+      })
+    );
+  }, [dispatch, user?.office?.id, selectedStaff, selectedRange]);
 
   const handleStaffChange = (event) => {
     setSelectedStaff(event.target.value);
@@ -156,7 +162,7 @@ const FilterControlsRange = () => {
   const handleExport = async () => {
     const recordData = await apiFetch("/export_excel", {
       method: "POST",
-      responseType: "blob", // excel
+      responseType: "blob",
       body: {
         staff: user,
         record_date: timeStudyRecord[0].record_date,
@@ -184,7 +190,6 @@ const FilterControlsRange = () => {
   const handleClose = () => setAnchorEl(null);
   const open = Boolean(anchorEl);
 
-  // 1回目クリックで開始、2回目で終了（前後自動入れ替え）
   const handleDaySelect = (day) => {
     const [s, e] = draftRange;
     if (!s || (s && e)) {
@@ -200,6 +205,11 @@ const FilterControlsRange = () => {
 
   const applyRange = () => {
     setSelectedRange(draftRange);
+    // ★ 範囲をローカル保存
+    if (draftRange[0] && draftRange[1]) {
+      setItem(LS_KEYS.rangeStart, draftRange[0].format("YYYY-MM-DD"));
+      setItem(LS_KEYS.rangeEnd, draftRange[1].format("YYYY-MM-DD"));
+    }
     handleClose();
   };
 
@@ -251,7 +261,7 @@ const FilterControlsRange = () => {
               }}
             >
               <DateCalendar
-                value={null} // 単一日 pick（範囲は自前）
+                value={null}
                 onChange={handleDaySelect}
                 slots={{ day: RangeDay }}
                 slotProps={{
@@ -260,7 +270,7 @@ const FilterControlsRange = () => {
                     end: draftRange[1],
                   },
                 }}
-                referenceDate={draftRange[0] ?? dayjs()} // 本日 or 開始日にカレンダーを寄せる
+                referenceDate={draftRange[0] ?? dayjs()}
                 reduceAnimations
               />
 

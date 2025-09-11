@@ -14,19 +14,12 @@ import React, { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 
-// メニューの色定義（パスはあなたの環境に合わせて）
 import { menuCategories } from "../../../../constants/menu";
 
-/** “直介護”とみなすラベル（指標用・必要に応じて調整） */
-const DIRECT_CARE_LABELS = new Set([
-  "移動・移乗・体位交換",
-  "入浴・整容・更衣",
-  "排泄介助・支援",
-  "食事支援",
-  "機能訓練・医療的処置",
-  "その他の直接介護",
-]);
+/** 表示用（色決定には使わない） */
+const pickLabel = (it) => it?.label || it?.name || it?.type || "その他";
 
+/** 秒→分（start/end or duration） */
 const minutesFrom = (item) => {
   const sec =
     (typeof item?.duration === "number" ? item.duration : null) ??
@@ -36,12 +29,14 @@ const minutesFrom = (item) => {
   const m = sec / 60;
   return m > 0 ? m : 0;
 };
-const pickLabel = (it) => it?.label || it?.name || it?.type || "その他";
 
 function CustomTooltip({ active, payload }) {
   if (!active || !payload || !payload.length) return null;
   const row = payload[0]?.payload || {};
   const totalMin = row.__totalMin || 0;
+  const entries = Object.entries(row.__rawMins || {}).sort(
+    (a, b) => b[1] - a[1]
+  );
   return (
     <Box
       sx={{
@@ -58,7 +53,7 @@ function CustomTooltip({ active, payload }) {
       <Typography variant="caption" color="text.secondary">
         合計: {Math.round(totalMin)} 分
       </Typography>
-      {Object.entries(row.__rawMins || {}).map(([cat, min]) => (
+      {entries.map(([cat, min]) => (
         <Box
           key={cat}
           sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}
@@ -83,30 +78,31 @@ export default function StaffCategory100Chart({ height = 420 }) {
     record = [],
   } = useSelector((s) => s.timeRecord || {});
 
-  // 1) メニューから「カテゴリ名 → 色（graphColor）」の辞書
-  const LABEL_COLOR = useMemo(() => {
+  /** 1) (type,name) → graphColor の辞書を生成（color は絶対に使わない） */
+  const TYPE_NAME_COLOR = useMemo(() => {
     const map = {};
     (menuCategories || []).forEach((cat) => {
+      const t = cat?.type;
       (cat.items || []).forEach((it) => {
-        if (it?.label) {
-          map[it.label] = it.graphColor || it.color || cat.color;
+        const n = it?.name;
+        if (t && n && it?.graphColor) {
+          map[`${t}::${n}`] = it.graphColor;
         }
       });
     });
-    if (!map["その他"]) map["その他"] = "#9e9e9e";
     return map;
   }, []);
 
-  // 2) オフィスか個人か
+  /** 2) モード判定（実データ参照は groupedByStaff / record） */
   const isOffice =
     (officeRecords && officeRecords.length > 0) ||
     (groupedByStaff && Object.keys(groupedByStaff || {}).length > 0);
 
-  // 3) 対象スタッフの決定：★ grouped_by_staff に実データがある人だけ
+  /** 3) グループ準備：記録があるスタッフのみ */
   const groups = useMemo(() => {
     if (isOffice) {
       const idsWithData = Object.entries(groupedByStaff || {})
-        .filter(([, arr]) => Array.isArray(arr) && arr.length > 0) // 記録ゼロは除外
+        .filter(([, arr]) => Array.isArray(arr) && arr.length > 0)
         .map(([sid]) => String(sid));
       const nameMap = Object.fromEntries(
         (staffMeta || []).map((s) => [String(s.id), s.name])
@@ -127,9 +123,11 @@ export default function StaffCategory100Chart({ height = 420 }) {
     }
   }, [isOffice, groupedByStaff, staffMeta, record]);
 
-  // 4) 集計：スタッフ×カテゴリ → 分 → %（合計100%に正規化）
-  const { dataRows, categories } = useMemo(() => {
+  /** 4) 集計：label は表示用。色判定用に label→{type,name} を保持 */
+  const { dataRows, categories, labelToTypeName } = useMemo(() => {
     const cats = new Set();
+    const labelKeyMap = {}; // label -> { type, name }
+
     const rows = groups.staffIds.map((sid) => {
       const recs = groups.grouped[String(sid)] || [];
       const minsByCat = {};
@@ -138,21 +136,25 @@ export default function StaffCategory100Chart({ height = 420 }) {
       recs.forEach((r) => {
         const items = Array.isArray(r.record) ? r.record : [];
         items.forEach((it) => {
-          const cat = pickLabel(it);
+          const label = pickLabel(it); // 表示用
+          const t = it?.type || "other";
+          const n = it?.name || "other";
           const m = minutesFrom(it);
           if (m <= 0) return;
-          cats.add(cat);
-          minsByCat[cat] = (minsByCat[cat] || 0) + m;
+
+          cats.add(label);
+          if (!labelKeyMap[label]) labelKeyMap[label] = { type: t, name: n }; // 最初の出現で固定
+          minsByCat[label] = (minsByCat[label] || 0) + m;
           total += m;
         });
       });
 
-      // %化 → 合計100%にスケーリング（浮動小数誤差対策）
+      // %化して合計100%に補正
       const pct = {};
       const denom = Math.max(total, 1);
-      Object.keys(minsByCat).forEach((k) => {
-        pct[k] = (minsByCat[k] / denom) * 100;
-      });
+      Object.keys(minsByCat).forEach(
+        (k) => (pct[k] = (minsByCat[k] / denom) * 100)
+      );
       const sumPct = Object.values(pct).reduce((s, v) => s + v, 0);
       const scale = sumPct ? 100 / sumPct : 1;
       Object.keys(pct).forEach((k) => (pct[k] *= scale));
@@ -161,42 +163,33 @@ export default function StaffCategory100Chart({ height = 420 }) {
         staffId: sid,
         staffName: groups.getName(String(sid)),
         ...pct,
+        // ...minsByCat,
         __totalMin: total,
         __rawMins: minsByCat,
-        __directRatio:
-          total > 0
-            ? (Object.entries(minsByCat)
-                .filter(([k]) => DIRECT_CARE_LABELS.has(k))
-                .reduce((s, [, v]) => s + v, 0) /
-                total) *
-              100
-            : 0,
       };
     });
 
     return {
-      dataRows: rows, // idsWithData でゼロは既に除外済み
+      dataRows: rows,
       categories: Array.from(cats),
+      labelToTypeName: labelKeyMap,
     };
   }, [groups]);
 
-  // 5) 並び替え（必要に応じて）
+  /** 5) 並び替え（任意） */
   const [sortKey] = useState("total");
   const sortedRows = useMemo(() => {
     const arr = [...dataRows];
     if (sortKey === "total") arr.sort((a, b) => b.__totalMin - a.__totalMin);
-    else if (sortKey === "direct")
-      arr.sort((a, b) => b.__directRatio - a.__directRatio);
     else if (sortKey === "name")
-      arr.sort((a, b) => a.staffName.localeCompare(b.staffName));
+      arr.sort((a, b) => a.staffName.localeCompare(b.staffName, "ja"));
     return arr;
   }, [dataRows, sortKey]);
 
-  // 6) 色割り当て（menu の graphColor を最優先）
+  /** 6) 色決定： (type,name) 一致の graphColor のみ使用（見つからなければフォールバック） */
   const colorMap = useMemo(() => {
     const fallback = [
       theme.palette.primary.main,
-      theme.palette.secondary?.main || "#7b1fa2",
       theme.palette.success.main,
       theme.palette.warning.main,
       theme.palette.info.main,
@@ -207,10 +200,13 @@ export default function StaffCategory100Chart({ height = 420 }) {
     ];
     const map = {};
     categories.forEach((label, i) => {
-      map[label] = LABEL_COLOR[label] || fallback[i % fallback.length];
+      const tn = labelToTypeName?.[label]; // {type, name}
+      const key = tn ? `${tn.type}::${tn.name}` : "";
+      map[label] =
+        (key && TYPE_NAME_COLOR[key]) || fallback[i % fallback.length];
     });
     return map;
-  }, [categories, LABEL_COLOR, theme.palette]);
+  }, [categories, labelToTypeName, TYPE_NAME_COLOR, theme.palette]);
 
   if (!sortedRows.length) {
     return (
@@ -222,6 +218,7 @@ export default function StaffCategory100Chart({ height = 420 }) {
     );
   }
 
+  /** 7) 描画（label は表示専用、色は (type,name) → graphColor） */
   return (
     <Box sx={{ width: "100%", height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -237,6 +234,11 @@ export default function StaffCategory100Chart({ height = 420 }) {
             ticks={[0, 20, 40, 60, 80, 100]}
             tickFormatter={(v) => `${Math.round(v)}%`}
           />
+          {/* <XAxis カラムを分にする場合
+            type="number"
+            domain={[0, "dataMax"]}          // データの最大値まで自動
+            tickFormatter={(v) => `${Math.round(v)}分`} // 単位は分
+          /> */}
           <YAxis type="category" dataKey="staffName" width={50} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />

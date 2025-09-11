@@ -2,10 +2,7 @@ import { Box, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 // src/components/Charts/GraphSelector.jsx
 import React from "react";
 
-import { GRAPH_OPTIONS } from "../GraphOptions";
-
-
-export default function GraphSelector({ value, onChange, sx }) {
+export default function GraphSelector({ value, onChange, options = [], sx }) {
   return (
     <Box sx={sx}>
       <FormControl size="small" fullWidth>
@@ -16,7 +13,7 @@ export default function GraphSelector({ value, onChange, sx }) {
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
         >
-          {GRAPH_OPTIONS.map((opt) => (
+          {options.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
               {opt.label}
             </MenuItem>

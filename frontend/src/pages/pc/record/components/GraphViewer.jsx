@@ -5,6 +5,7 @@ import React from "react";
 import DailyCategoryStackedChart from "./DailyCategoryStackedChart";
 import StaffCategory100Chart from "./StaffCategory100Chart";
 import StaffTypeMix100Chart from "./StaffTypeMix100Chart";
+import HourStackedGraph from "./HourStackedGraph";
 
 function ComingSoon({ title }) {
   return (
@@ -29,6 +30,9 @@ export default function GraphViewer({ type, height = 460 }) {
 
     case "staffCategory100":
       return <StaffCategory100Chart height={height} />;
+
+    case "hourStacked": // 一般職員用・時間帯×積み上げ
+      return <HourStackedGraph height={height} />;
 
     case "hourCategoryHeatmap":
       return <ComingSoon title="時間帯×カテゴリ（ヒートマップ）" />;
