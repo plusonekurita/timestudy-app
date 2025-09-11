@@ -1,14 +1,30 @@
+# app/db/database.py
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
-load_dotenv()
+from urllib.parse import urlparse
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://timestudy_db_7yhl_user:0y6Tmj2464cgvxUDfNbwGNINxXvCuILA@dpg-d1sp1v6mcj7s73aovdh0-a.singapore-postgres.render.com/timestudy_db_7yhl?sslmode=require")
-print("📡 DATABASE_URL:", DATABASE_URL)
+# 必ず環境変数から取得（ハードコードのデフォルトは廃止）
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL が設定されていません（RenderのDashboardで設定してください）")
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# パスワードは絶対に出さない。ホスト情報だけ軽くログ。
+u = urlparse(DATABASE_URL)
+print(f"📡 DB host: {u.hostname}, port: {u.port or 5432}, ssl={'sslmode=require' in (u.query or '')}")
+
+# Render外部接続は基本SSL必須。プール健全性チェックも有効化。
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=1800,   # 30分で再接続
+    pool_size=5,
+    max_overflow=10,
+    connect_args={"sslmode": "require"},
+    future=True,
+)
+
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, future=True)
 Base = declarative_base()
 
 def get_db():
