@@ -38,10 +38,6 @@ const MainPage = () => {
 
   // アイコンクリック時のハンドラ
   const handleItemClick = (item) => {
-    // 既に動いているタイマーがあれば、ここで記録処理を行う
-    if (activeItem) {
-      // dispatch(recordTimeAction({ label: activeItem.label, duration: elapsedTime }));
-    }
     startTimer(item); // カスタムフックの startTimer関数
   };
 

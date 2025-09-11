@@ -1,4 +1,9 @@
-import { BottomNavigation, BottomNavigationAction, Drawer, IconButton, } from "@mui/material";
+import {
+  BottomNavigation,
+  BottomNavigationAction,
+  Drawer,
+  IconButton,
+} from "@mui/material";
 // src/components/ProtectedLayout.jsx
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -12,7 +17,6 @@ import LeftDrawerMenu from "./LeftDrawerMenu/LfetDrawerMenu";
 import LoadingOverlay from "./LoadingOverlay";
 import EdgeMenuHandle from "./EdgeMenuHandle";
 import Header from "./Header";
-
 
 const HEADER_HEIGHT = "42px";
 const FOOTER_HEIGHT = "68px";

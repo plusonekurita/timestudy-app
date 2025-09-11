@@ -77,8 +77,35 @@ def create_time_record(request: TimeRecordRequest, db: Session = Depends(get_db)
         ).first()
 
         if existing:
-            # 既存レコードがある場合 → 上書き更新
-            existing.record = [r.model_dump() for r in request.record] # レコードの上書き
+            # 既存レコードがある場合 → ユニークIDでマージ
+            # - 同一IDは上書き（更新）
+            # - 未存在IDは追加（既存の順序は維持、追加分は末尾）
+            incoming_records = [r.model_dump() for r in request.record]
+            existing_records = existing.record or []
+
+            # 既存の順序を保持するために ID の並びを保持
+            existing_id_order = []
+            existing_by_id = {}
+            for r in existing_records:
+                rid = str(r.get("id"))
+                existing_by_id[rid] = r
+                existing_id_order.append(rid)
+
+            # 上書き or 追加
+            for r in incoming_records:
+                rid = str(r.get("id"))
+                existing_by_id[rid] = r  # 上書き（存在しなければ追加）
+
+            # 更新後のリストを構築：
+            # 1) 既存順序に沿って再構成（上書き反映）
+            updated_records = [existing_by_id[rid] for rid in existing_id_order if rid in existing_by_id]
+            # 2) 既存に無かった ID を、受信順で末尾に追加
+            for r in incoming_records:
+                rid = str(r.get("id"))
+                if rid not in existing_id_order:
+                    updated_records.append(r)
+
+            existing.record = updated_records
             db.commit()
             db.refresh(existing)
             return {"message": "Time record updated", "id": existing.id}
@@ -149,19 +176,38 @@ def get_range_record(request: TimeRecordRangeRequest, db: Session = Depends(get_
 @router.post("/get-time-records/by-office")
 def get_range_records_by_office(request: TimeRecordsByOfficeRequest, db: Session = Depends(get_db)):
     try:
-        # ① 職員を id 昇順で取得
+        # ① 対象スタッフ（id 昇順）："staff" を最優先に解釈
         staff_q = db.query(Staffs.id, Staffs.name).filter(Staffs.office_id == request.office_id)
-        if request.staff_ids:
-            staff_q = staff_q.filter(Staffs.id.in_(request.staff_ids))
-        staff_q = staff_q.order_by(Staffs.id.asc())             # ← 追加
+
+        staff_filter_ids: Optional[List[int]] = None
+        if request.staff == "all" or request.staff is None:
+            # 全員（office 内）。必要があれば既存の staff_ids でさらに絞る
+            if request.staff_ids:
+                staff_filter_ids = [int(x) for x in request.staff_ids]
+        elif isinstance(request.staff, int):
+            staff_filter_ids = [int(request.staff)]
+        elif isinstance(request.staff, list):
+            staff_filter_ids = [int(x) for x in request.staff]
+        else:
+            raise HTTPException(status_code=400, detail="staff は 'all' か 数値 か 数値配列で指定してください。")
+
+        if staff_filter_ids:
+            staff_q = staff_q.filter(Staffs.id.in_(staff_filter_ids))
+
+        staff_q = staff_q.order_by(Staffs.id.asc())
         staff_rows = staff_q.all()
         if not staff_rows:
-            return {"message": "該当する職員がいませんでした。", "records": [], "staff": [], "grouped_by_staff": {}}
+            return {
+                "message": "該当する職員がいませんでした。",
+                "records": [],
+                "grouped_by_staff": {},
+                "staff": [],
+            }
 
-        staff_ids = [s.id for s in staff_rows]
+        staff_ids = [s.id for s in staff_rows]              # id 昇順
         staff_map = {s.id: s.name for s in staff_rows}
 
-        # ② レコード取得（並び順：staff_id → record_date）
+        # ② レコード取得（並び: staff_id → record_date）
         q = db.query(TimeRecord).filter(TimeRecord.staff_id.in_(staff_ids))
         if not request.end_date or request.start_date == request.end_date:
             q = q.filter(TimeRecord.record_date == request.start_date)
@@ -173,10 +219,10 @@ def get_range_records_by_office(request: TimeRecordsByOfficeRequest, db: Session
             )
             msg_date = f"{request.start_date} 〜 {request.end_date}"
 
-        q = q.order_by(TimeRecord.staff_id.asc(), TimeRecord.record_date.asc())  # ← 並び順を統一
+        q = q.order_by(TimeRecord.staff_id.asc(), TimeRecord.record_date.asc())
         rows = q.all()
 
-        # シリアライズ
+        # ③ シリアライズ（_sa_instance_state を除去し、staff_name を付与）
         def serialize(r: TimeRecord):
             d = {k: v for k, v in r.__dict__.items() if k != "_sa_instance_state"}
             d["staff_name"] = staff_map.get(r.staff_id)
@@ -184,33 +230,38 @@ def get_range_records_by_office(request: TimeRecordsByOfficeRequest, db: Session
 
         flat = [serialize(r) for r in rows]
 
-        # ③ grouped_by_staff を id 昇順で構築（空も含めたい場合は先に空配列を用意）
+        # ④ group 構築：include_empty_staff の挙動に合わせる
         grouped = OrderedDict()
         if request.include_empty_staff:
-            for sid in staff_ids:                 # id 昇順でキーを追加
-                grouped[str(sid)] = []            # JSONではキーは文字列
+            # 選択スタッフ全員のキーを用意（空配列可）
+            for sid in staff_ids:
+                grouped[str(sid)] = []
 
-        # レコードを詰める
         for r in rows:
             key = str(r.staff_id)
             if key not in grouped:
-                grouped[key] = []                 # include_empty_staff=False のとき
+                grouped[key] = []  # include_empty_staff=False のときは "記録がある人だけ" 生える
             grouped[key].append(serialize(r))
 
-        # include_empty_staff=False でも id 順に揃えて返す
+        # include_empty_staff=False の場合でも id 昇順整形（空の人は落ちる）
         if not request.include_empty_staff:
-            grouped = OrderedDict((str(sid), grouped.get(str(sid), [])) for sid in staff_ids if str(sid) in grouped)
+            grouped = OrderedDict(
+                (str(sid), grouped[str(sid)]) for sid in staff_ids if str(sid) in grouped
+            )
 
         return {
             "message": f"{msg_date}：{len(staff_ids)}名 / {len(rows)}件の記録を取得しました。",
             "records": flat,
-            "grouped_by_staff": grouped,                             # ← id 昇順
-            "staff": [{"id": s.id, "name": s.name} for s in staff_rows],  # ← id 昇順
+            "grouped_by_staff": grouped,                         # 文字列キー / id 昇順
+            "staff": [{"id": s.id, "name": s.name} for s in staff_rows],  # id 昇順
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         print("❌ 所属別記録取得エラー:", str(e))
         raise HTTPException(status_code=500, detail="所属別の記録取得中にエラーが発生しました")
+
 
 @router.post("/convert-time-records")
 def convert_time_records(request: TimeRecordRequest):
