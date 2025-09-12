@@ -12,6 +12,7 @@ export default function GraphSelector({ value, onChange, options = [], sx }) {
           label="グラフ種類"
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
+          sx={{ backgroundColor: "white" }}
         >
           {options.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>

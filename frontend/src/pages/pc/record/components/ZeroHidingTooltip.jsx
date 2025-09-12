@@ -1,7 +1,6 @@
 // ZeroHidingTooltip.jsx
 import React from "react";
 
-
 export default function ZeroHidingTooltip(props) {
   const {
     active,
@@ -9,6 +8,7 @@ export default function ZeroHidingTooltip(props) {
     payload,
     min = 0.05,
     displayOf = (n) => n, // name→表示名（未指定なら name を表示）
+    valueFormatter = (v) => `${Number(v).toFixed(1)}分`,
   } = props || {};
 
   if (!active || !payload) return null;
@@ -63,7 +63,7 @@ export default function ZeroHidingTooltip(props) {
           >
             {displayOf(it.key)}
           </span>
-          <span style={{ color: "#d9d9d9" }}>{it.value.toFixed(1)}分</span>
+          <span style={{ color: "#d9d9d9" }}>{valueFormatter(it.value)}</span>
         </div>
       ))}
     </div>

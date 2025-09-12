@@ -16,6 +16,7 @@ import {
   Popover,
   Paper,
 } from "@mui/material";
+import { Stack } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -24,21 +25,28 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 
-import { fetchOfficeTimeRecords } from "../../store/slices/timeRecordSlice";
+import {
+  fetchOfficeTimeRecords,
+  fetchTimeRecords,
+} from "../../store/slices/timeRecordSlice";
 import { getValue, setItem } from "../../utils/localStorageUtils";
 import { setStaffList } from "../../store/slices/staffSlice";
 import { isEmpty } from "../../utils/isEmpty";
 import { apiFetch } from "../../utils/api";
 
-// 選択日付保存キー
+// 選択日付・職員保存キー
 const LS_KEYS = {
-  singleDate: "ts_single_date",
+  recordSingleDate: "ts_single_date",
+  sheetSingleDate: "sheet_single_date",
+  recordSingleStaff: "ts_single_staff",
+  sheetSingleStaff: "sheet_single_staff",
 };
 
-const FilterControlsSingle = () => {
+const FilterControlsSingle = ({ allowAllStaff = true }) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [draftDate, setDraftDate] = useState(dayjs());
   const [selectedStaff, setSelectedStaff] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -50,16 +58,23 @@ const FilterControlsSingle = () => {
 
   const sheetPage = location.pathname.startsWith("/survey-sheet");
 
+  const LS_DATE_KEY = sheetPage
+    ? LS_KEYS.sheetSingleDate
+    : LS_KEYS.recordSingleDate;
+  const LS_STAFF_KEY = sheetPage
+    ? LS_KEYS.sheetSingleStaff
+    : LS_KEYS.recordSingleStaff;
+
   // ★ 起動時にローカル保存した単日を復元
   useEffect(() => {
-    const saved = getValue(LS_KEYS.singleDate);
+    const saved = getValue(LS_DATE_KEY);
     if (saved) {
       const d = dayjs(saved);
       if (d.isValid()) {
         setSelectedDate(d);
       }
     }
-  }, []);
+  }, [LS_DATE_KEY]);
 
   // 管理者のみ職員リスト一覧の取得
   useEffect(() => {
@@ -79,11 +94,39 @@ const FilterControlsSingle = () => {
     }
   }, []); // eslint-disable-line
 
+  // ★ 起動時にローカル保存した職員選択を復元
   useEffect(() => {
-    if (!isAdmin) {
+    if (isAdmin) {
+      // 管理者の場合：保存された職員選択を復元
+      const savedStaff = getValue(LS_STAFF_KEY);
+      if (savedStaff) {
+        if (!allowAllStaff && savedStaff === "all") {
+          // 全員が不許可なら反映しない
+          setSelectedStaff("");
+        } else {
+          setSelectedStaff(savedStaff);
+        }
+      }
+    } else if (user) {
+      // 一般ユーザーの場合：自分の情報を設定
       setSelectedStaff(user);
     }
-  }, []); // eslint-disable-line
+  }, [isAdmin, LS_STAFF_KEY, allowAllStaff]); // eslint-disable-line
+
+  // ★ 全員が不許可に切り替わった場合のフォールバック
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (allowAllStaff) return;
+    if (selectedStaff !== "all") return;
+
+    if (Array.isArray(staffList) && staffList.length > 0) {
+      const first = staffList[0];
+      setSelectedStaff(first);
+      setItem(LS_STAFF_KEY, first);
+    } else {
+      setSelectedStaff("");
+    }
+  }, [allowAllStaff, isAdmin, selectedStaff, staffList, LS_STAFF_KEY]);
 
   // 日付or職員選択でタイムスタディレコードの取得（単日）
   useEffect(() => {
@@ -92,28 +135,50 @@ const FilterControlsSingle = () => {
     const dateStr = selectedDate.format("YYYY-MM-DD");
     const staffParam = selectedStaff === "all" ? "all" : selectedStaff.id;
 
-    dispatch(
-      fetchOfficeTimeRecords({
-        officeId: user.office.id,
-        startDate: dateStr,
-        endDate: dateStr,
-        staff: staffParam,
-      })
-    );
+    if (sheetPage) {
+      dispatch(
+        fetchTimeRecords({
+          staffId: staffParam,
+          startDate: dateStr,
+          endDate: dateStr,
+        })
+      );
+    } else {
+      dispatch(
+        fetchOfficeTimeRecords({
+          officeId: user.office.id,
+          startDate: dateStr,
+          endDate: dateStr,
+          staff: staffParam,
+        })
+      );
+    }
   }, [dispatch, user?.office?.id, selectedStaff, selectedDate]);
 
   const handleStaffChange = (event) => {
-    setSelectedStaff(event.target.value);
+    const selectedValue = event.target.value;
+    // 全員が不許可の時に 'all' を選んだら弾く
+    if (!allowAllStaff && selectedValue === "all") return;
+    setSelectedStaff(selectedValue);
+
+    // ★ 職員選択時にローカル保存
+    if (selectedValue) {
+      setItem(LS_STAFF_KEY, selectedValue);
+    }
   };
 
-  // ★ 日付選択時にローカル保存
-  const handleDateChange = (newValue) => {
-    console.log(newValue);
-    setSelectedDate(newValue);
-    if (newValue && dayjs(newValue).isValid()) {
-      setItem(LS_KEYS.singleDate, dayjs(newValue).format("YYYY-MM-DD"));
+  // ★ 単日の確定（OK）
+  const applyDate = () => {
+    if (draftDate && dayjs(draftDate).isValid()) {
+      setSelectedDate(draftDate);
+      setItem(LS_DATE_KEY, dayjs(draftDate).format("YYYY-MM-DD"));
     }
     setAnchorEl(null);
+  };
+
+  const setToday = () => {
+    const t = dayjs();
+    setDraftDate(t);
   };
 
   // 出力 エクセル
@@ -145,6 +210,7 @@ const FilterControlsSingle = () => {
   };
 
   const handleOpen = (event) => {
+    setDraftDate(selectedDate);
     setAnchorEl(event.currentTarget);
   };
 
@@ -187,10 +253,31 @@ const FilterControlsSingle = () => {
               }}
             >
               <DateCalendar
-                value={selectedDate}
+                value={draftDate}
                 format="YYYY年M月D日"
-                onChange={handleDateChange}
+                onChange={(v) => setDraftDate(v)}
+                reduceAnimations
               />
+
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{ mt: 1 }}
+              >
+                <Button size="small" onClick={setToday}>
+                  本日
+                </Button>
+
+                <Stack direction="row" spacing={1} justifyContent="flex-end">
+                  <Button color="inherit" onClick={handleClose}>
+                    戻る
+                  </Button>
+                  <Button variant="contained" onClick={applyDate}>
+                    OK
+                  </Button>
+                </Stack>
+              </Stack>
             </Popover>
           </Box>
 
@@ -203,11 +290,11 @@ const FilterControlsSingle = () => {
                 <Select
                   value={selectedStaff}
                   onChange={handleStaffChange}
-                  sx={{ textAlign: "start" }}
+                  sx={{ textAlign: "start", backgroundColor: "white" }}
                   className="staff-button"
                   IconComponent={ExpandMoreIcon}
                 >
-                  {isAdmin && (
+                  {!sheetPage && isAdmin && allowAllStaff && (
                     <MenuItem key={0} value={"all"}>
                       全員
                     </MenuItem>

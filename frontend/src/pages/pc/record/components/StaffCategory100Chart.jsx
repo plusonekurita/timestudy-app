@@ -15,6 +15,7 @@ import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 
 import { menuCategories } from "../../../../constants/menu";
+import ZeroHidingTooltip from "./ZeroHidingTooltip";
 
 /** 表示用（色決定には使わない） */
 const pickLabel = (it) => it?.label || it?.name || it?.type || "その他";
@@ -240,7 +241,15 @@ export default function StaffCategory100Chart({ height = 420 }) {
             tickFormatter={(v) => `${Math.round(v)}分`} // 単位は分
           /> */}
           <YAxis type="category" dataKey="staffName" width={50} />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip
+            content={
+              <ZeroHidingTooltip
+                min={0.05}
+                displayOf={(name) => name}
+                valueFormatter={(v) => `${v.toFixed(1)}%`}
+              />
+            }
+          />
           <Legend />
           {categories.map((label) => (
             <Bar

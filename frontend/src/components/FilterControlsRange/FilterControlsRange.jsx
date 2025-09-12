@@ -81,7 +81,7 @@ function RangeDay(props) {
   );
 }
 
-const FilterControlsRange = () => {
+const FilterControlsRange = ({ allowAllStaff = true }) => {
   const location = useLocation();
   const dispatch = useDispatch();
 
@@ -155,7 +155,9 @@ const FilterControlsRange = () => {
   }, [dispatch, user?.office?.id, selectedStaff, selectedRange]);
 
   const handleStaffChange = (event) => {
-    setSelectedStaff(event.target.value);
+    const next = event.target.value;
+    if (!allowAllStaff && next === "all") return; // 全員禁止時は弾く
+    setSelectedStaff(next);
   };
 
   // 出力 エクセル
@@ -309,13 +311,15 @@ const FilterControlsRange = () => {
                 <Select
                   value={selectedStaff}
                   onChange={handleStaffChange}
-                  sx={{ textAlign: "start" }}
+                  sx={{ textAlign: "start", backgroundColor: "white" }}
                   className="staff-button"
                   IconComponent={ExpandMoreIcon}
                 >
-                  <MenuItem key={0} value={"all"}>
-                    全員
-                  </MenuItem>
+                  {allowAllStaff && (
+                    <MenuItem key={0} value={"all"}>
+                      全員
+                    </MenuItem>
+                  )}
                   {staffList.map((staff) => (
                     <MenuItem key={staff.id} value={staff}>
                       {staff.name}
