@@ -4,7 +4,7 @@ export const GRAPH_OPTIONS_ADMIN = [
   {
     value: "dailyCategoryStacked",
     label: "日別×カテゴリ（積み上げ）",
-    dateMode: "single",
+    dateMode: "range",
   }, // ← 単日
   {
     value: "staffType100",
@@ -14,6 +14,11 @@ export const GRAPH_OPTIONS_ADMIN = [
   {
     value: "staffCategory100",
     label: "スタッフ別構成比（100%積み上げ）",
+    dateMode: "single",
+  },
+  {
+    value: "hourStacked",
+    label: "時間帯×項目別（積み上げ）",
     dateMode: "single",
   },
   {

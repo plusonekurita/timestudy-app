@@ -20,6 +20,14 @@ import {
 import React, { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
+import ZeroHidingTooltip from "./ZeroHidingTooltip";
+// 業務タイプ定義（固定4種）
+const TYPE_KEYS = Object.freeze([
+  "directCare",
+  "indirectWork",
+  "break",
+  "other",
+]);
 
 import { menuCategories } from "../../../../constants/menu";
 
@@ -36,9 +44,6 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
   const isOffice =
     (officeRecords && officeRecords.length > 0) ||
     (groupedByStaff && Object.keys(groupedByStaff || {}).length > 0);
-
-  // ---- 業務タイプ定義（固定4種） & menuCategories から色/ラベルを取り出す ----
-  const TYPE_KEYS = ["directCare", "indirectWork", "break", "other"];
 
   const TYPE_META = useMemo(() => {
     const metaFromMenu = Object.fromEntries(
@@ -139,7 +144,7 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
   }, [isOffice, staffMeta, groupedByStaff, record]);
 
   // 並び替え（合計時間 / 直接介護比率 / 名前）
-  const [sortKey, setSortKey] = useState("total");
+  const [sortKey] = useState("total");
   const sortedRows = useMemo(() => {
     const arr = [...dataRows];
     if (sortKey === "total") arr.sort((a, b) => b.__totalMin - a.__totalMin);
@@ -215,7 +220,15 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
             tickFormatter={(v) => `${Math.round(v)}%`}
           />
           <YAxis type="category" dataKey="staffName" width={50} />
-          <Tooltip content={<TooltipBox />} />
+          <Tooltip
+            content={
+              <ZeroHidingTooltip
+                min={0.05}
+                displayOf={(name) => TYPE_META[name]?.label || name}
+                valueFormatter={(v) => `${v.toFixed(1)}%`}
+              />
+            }
+          />
           <Legend />
           {/* dataKey はタイプ名、凡例名・色は menu.jsx 由来 */}
           {TYPE_KEYS.map((k) => (

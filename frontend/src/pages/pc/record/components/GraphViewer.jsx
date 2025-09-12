@@ -6,6 +6,7 @@ import DailyCategoryStackedChart from "./DailyCategoryStackedChart";
 import StaffCategory100Chart from "./StaffCategory100Chart";
 import StaffTypeMix100Chart from "./StaffTypeMix100Chart";
 import HourStackedGraph from "./HourStackedGraph";
+import HourCategoryHeatmap from "./HourCategoryHeatmap";
 
 function ComingSoon({ title }) {
   return (
@@ -35,7 +36,7 @@ export default function GraphViewer({ type, height = 460 }) {
       return <HourStackedGraph height={height} />;
 
     case "hourCategoryHeatmap":
-      return <ComingSoon title="時間帯×カテゴリ（ヒートマップ）" />;
+      return <HourCategoryHeatmap height={height} />;
 
     case "paretoCategory":
       return <ComingSoon title="カテゴリ別パレート" />;
