@@ -29,6 +29,7 @@ export const apiFetch = async (path, options = {}) => {
     }
   }
   console.log("API URL:", import.meta.env.VITE_API_URL);
+  console.log(API_BASE);
 
   try {
     const res = await fetch(`${API_BASE}${path}`, {
