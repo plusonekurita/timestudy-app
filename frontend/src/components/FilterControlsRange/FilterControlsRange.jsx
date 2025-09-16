@@ -1,7 +1,6 @@
 import {
   CalendarToday as CalendarTodayIcon,
   PersonOutline as PersonOutlineIcon,
-  Download as DownloadIcon,
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import {
@@ -21,20 +20,19 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { PickersDay } from "@mui/x-date-pickers/PickersDay";
 import { useSelector, useDispatch } from "react-redux";
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
 
 import { fetchOfficeTimeRecords } from "../../store/slices/timeRecordSlice";
 import { getValue, setItem } from "../../utils/localStorageUtils";
 import { setStaffList } from "../../store/slices/staffSlice";
-import { isEmpty } from "../../utils/isEmpty";
 import { apiFetch } from "../../utils/api";
 
-// 選択日付保存キー
+// 選択日付・職員保存キー
 const LS_KEYS = {
   rangeStart: "ts_range_start",
   rangeEnd: "ts_range_end",
+  recordSingleStaff: "ts_single_staff",
 };
 
 const RangePickersDay = styled(PickersDay, {
@@ -82,7 +80,6 @@ function RangeDay(props) {
 }
 
 const FilterControlsRange = ({ allowAllStaff = true }) => {
-  const location = useLocation();
   const dispatch = useDispatch();
 
   const [selectedRange, setSelectedRange] = useState([dayjs(), dayjs()]); // [start, end]
@@ -91,11 +88,8 @@ const FilterControlsRange = ({ allowAllStaff = true }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const staffList = useSelector((state) => state.staff.staffList);
-  const timeStudyRecord = useSelector((state) => state.timeRecord.record);
 
   const user = getValue("user");
-
-  const sheetPage = location.pathname.startsWith("/survey-sheet");
 
   // ★ 起動時にローカル保存した範囲を復元
   useEffect(() => {
@@ -129,11 +123,39 @@ const FilterControlsRange = ({ allowAllStaff = true }) => {
     }
   }, []); // eslint-disable-line
 
+  // ★ 起動時にローカル保存した職員選択を復元
   useEffect(() => {
-    if (!user.isAdmin) {
+    if (user?.isAdmin) {
+      // 管理者の場合：保存された職員選択を復元
+      const savedStaff = getValue(LS_KEYS.recordSingleStaff);
+      if (savedStaff) {
+        if (!allowAllStaff && savedStaff === "all") {
+          // 全員が不許可なら反映しない
+          setSelectedStaff("");
+        } else {
+          setSelectedStaff(savedStaff);
+        }
+      }
+    } else if (user) {
+      // 一般ユーザーの場合：自分の情報を設定
       setSelectedStaff(user);
     }
-  }, []); // eslint-disable-line
+  }, [user?.isAdmin, allowAllStaff]); // eslint-disable-line
+
+  // ★ 全員が不許可に切り替わった場合のフォールバック
+  useEffect(() => {
+    if (!user?.isAdmin) return;
+    if (allowAllStaff) return;
+    if (selectedStaff !== "all") return;
+
+    if (Array.isArray(staffList) && staffList.length > 0) {
+      const first = staffList[0];
+      setSelectedStaff(first);
+      setItem(LS_KEYS.recordSingleStaff, first);
+    } else {
+      setSelectedStaff("");
+    }
+  }, [allowAllStaff, user?.isAdmin, selectedStaff, staffList]);
 
   // 日付範囲 or 職員選択でレコード取得
   useEffect(() => {
@@ -155,33 +177,20 @@ const FilterControlsRange = ({ allowAllStaff = true }) => {
   }, [dispatch, user?.office?.id, selectedStaff, selectedRange]);
 
   const handleStaffChange = (event) => {
-    const next = event.target.value;
-    if (!allowAllStaff && next === "all") return; // 全員禁止時は弾く
-    setSelectedStaff(next);
-  };
+    const selectedValue = event.target.value;
+    if (!allowAllStaff && selectedValue === "all") return; // 全員禁止時は弾く
 
-  // 出力 エクセル
-  const handleExport = async () => {
-    const recordData = await apiFetch("/export_excel", {
-      method: "POST",
-      responseType: "blob",
-      body: {
-        staff: user,
-        record_date: timeStudyRecord[0].record_date,
-        record: timeStudyRecord[0].record,
-      },
-    });
+    // IDから職員オブジェクトを取得
+    const staffObject =
+      selectedValue === "all"
+        ? "all"
+        : staffList.find((staff) => staff.id === selectedValue);
+    setSelectedStaff(staffObject);
 
-    const blob = await recordData;
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "タイムスタディ出力.xlsx";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
+    // ★ 職員選択時にローカル保存
+    if (staffObject) {
+      setItem(LS_KEYS.recordSingleStaff, staffObject);
+    }
   };
 
   /* ---------- 日付ポップオーバー ---------- */
@@ -309,7 +318,9 @@ const FilterControlsRange = ({ allowAllStaff = true }) => {
             {user?.isAdmin ? (
               <FormControl size="small" sx={{ minWidth: 190 }}>
                 <Select
-                  value={selectedStaff}
+                  value={
+                    selectedStaff === "all" ? "all" : selectedStaff?.id || ""
+                  }
                   onChange={handleStaffChange}
                   sx={{ textAlign: "start", backgroundColor: "white" }}
                   className="staff-button"
@@ -321,7 +332,7 @@ const FilterControlsRange = ({ allowAllStaff = true }) => {
                     </MenuItem>
                   )}
                   {staffList.map((staff) => (
-                    <MenuItem key={staff.id} value={staff}>
+                    <MenuItem key={staff.id} value={staff.id}>
                       {staff.name}
                     </MenuItem>
                   ))}
@@ -332,17 +343,6 @@ const FilterControlsRange = ({ allowAllStaff = true }) => {
             )}
           </Box>
         </Box>
-
-        {sheetPage && (
-          <Button
-            variant="contained"
-            startIcon={<DownloadIcon />}
-            onClick={handleExport}
-            disabled={isEmpty(timeStudyRecord)}
-          >
-            出力
-          </Button>
-        )}
       </Box>
     </LocalizationProvider>
   );
