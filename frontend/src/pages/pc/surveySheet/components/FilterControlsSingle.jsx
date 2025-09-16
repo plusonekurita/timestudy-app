@@ -1,8 +1,7 @@
-import "./FilterControls.scss";
-
 import {
   CalendarToday as CalendarTodayIcon,
   PersonOutline as PersonOutlineIcon,
+  Download as DownloadIcon,
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import {
@@ -22,15 +21,16 @@ import { useSelector, useDispatch } from "react-redux";
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 
-import { fetchOfficeTimeRecords } from "../../store/slices/timeRecordSlice";
-import { getValue, setItem } from "../../utils/localStorageUtils";
-import { setStaffList } from "../../store/slices/staffSlice";
-import { apiFetch } from "../../utils/api";
+import { fetchTimeRecords } from "../../../../store/slices/timeRecordSlice";
+import { getValue, setItem } from "../../../../utils/localStorageUtils";
+import { setStaffList } from "../../../../store/slices/staffSlice";
+import { isEmpty } from "../../../../utils/isEmpty";
+import { apiFetch } from "../../../../utils/api";
 
-// 選択日付・職員保存キー
+// 選択日付・職員保存キー（surveySheet専用）
 const LS_KEYS = {
-  recordSingleDate: "ts_single_date",
-  recordSingleStaff: "ts_single_staff",
+  sheetSingleDate: "sheet_single_date",
+  sheetSingleStaff: "sheet_single_staff",
 };
 
 const FilterControlsSingle = ({ allowAllStaff = true }) => {
@@ -40,23 +40,21 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const staffList = useSelector((state) => state.staff.staffList);
+  const timeStudyRecord = useSelector((state) => state.timeRecord.record);
 
   const user = getValue("user");
   const isAdmin = user?.isAdmin;
 
-  const LS_DATE_KEY = LS_KEYS.recordSingleDate;
-  const LS_STAFF_KEY = LS_KEYS.recordSingleStaff;
-
   // ★ 起動時にローカル保存した単日を復元
   useEffect(() => {
-    const saved = getValue(LS_DATE_KEY);
+    const saved = getValue(LS_KEYS.sheetSingleDate);
     if (saved) {
       const d = dayjs(saved);
       if (d.isValid()) {
         setSelectedDate(d);
       }
     }
-  }, [LS_DATE_KEY]);
+  }, []);
 
   // 管理者のみ職員リスト一覧の取得
   useEffect(() => {
@@ -80,7 +78,7 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
   useEffect(() => {
     if (isAdmin) {
       // 管理者の場合：保存された職員選択を復元
-      const savedStaff = getValue(LS_STAFF_KEY);
+      const savedStaff = getValue(LS_KEYS.sheetSingleStaff);
       if (savedStaff) {
         if (!allowAllStaff && savedStaff === "all") {
           // 全員が不許可なら反映しない
@@ -93,7 +91,7 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
       // 一般ユーザーの場合：自分の情報を設定
       setSelectedStaff(user);
     }
-  }, [isAdmin, LS_STAFF_KEY, allowAllStaff]); // eslint-disable-line
+  }, [isAdmin, allowAllStaff]); // eslint-disable-line
 
   // ★ 全員が不許可に切り替わった場合のフォールバック
   useEffect(() => {
@@ -104,11 +102,11 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
     if (Array.isArray(staffList) && staffList.length > 0) {
       const first = staffList[0];
       setSelectedStaff(first);
-      setItem(LS_STAFF_KEY, first);
+      setItem(LS_KEYS.sheetSingleStaff, first);
     } else {
       setSelectedStaff("");
     }
-  }, [allowAllStaff, isAdmin, selectedStaff, staffList, LS_STAFF_KEY]);
+  }, [allowAllStaff, isAdmin, selectedStaff, staffList]);
 
   // 日付or職員選択でタイムスタディレコードの取得（単日）
   useEffect(() => {
@@ -118,11 +116,10 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
     const staffParam = selectedStaff === "all" ? "all" : selectedStaff.id;
 
     dispatch(
-      fetchOfficeTimeRecords({
-        officeId: user.office.id,
+      fetchTimeRecords({
+        staffId: staffParam,
         startDate: dateStr,
         endDate: dateStr,
-        staff: staffParam,
       })
     );
   }, [dispatch, user?.office?.id, selectedStaff, selectedDate]);
@@ -141,7 +138,7 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
 
     // ★ 職員選択時にローカル保存
     if (staffObject) {
-      setItem(LS_STAFF_KEY, staffObject);
+      setItem(LS_KEYS.sheetSingleStaff, staffObject);
     }
   };
 
@@ -149,9 +146,33 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
   const handleDateChange = (newValue) => {
     setSelectedDate(newValue);
     if (newValue && dayjs(newValue).isValid()) {
-      setItem(LS_DATE_KEY, dayjs(newValue).format("YYYY-MM-DD"));
+      setItem(LS_KEYS.sheetSingleDate, dayjs(newValue).format("YYYY-MM-DD"));
     }
     setAnchorEl(null);
+  };
+
+  // 出力 エクセル
+  const handleExport = async () => {
+    const recordData = await apiFetch("/export_excel", {
+      method: "POST",
+      responseType: "blob",
+      body: {
+        staff: user,
+        record_date: timeStudyRecord[0].record_date,
+        record: timeStudyRecord[0].record,
+      },
+    });
+
+    const blob = await recordData;
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "タイムスタディ出力.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   const formatDate = (date) => {
@@ -224,11 +245,6 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
                   className="staff-button"
                   IconComponent={ExpandMoreIcon}
                 >
-                  {isAdmin && allowAllStaff && (
-                    <MenuItem key={0} value={"all"}>
-                      全員
-                    </MenuItem>
-                  )}
                   {staffList.map((staff) => (
                     <MenuItem key={staff.id} value={staff.id}>
                       {staff.name}
@@ -241,6 +257,15 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
             )}
           </Box>
         </Box>
+
+        <Button
+          variant="contained"
+          startIcon={<DownloadIcon />}
+          onClick={handleExport}
+          disabled={isEmpty(timeStudyRecord)}
+        >
+          出力
+        </Button>
       </Box>
     </LocalizationProvider>
   );

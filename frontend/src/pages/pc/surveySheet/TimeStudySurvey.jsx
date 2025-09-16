@@ -1,9 +1,9 @@
 import { Box, Typography } from "@mui/material";
 import React from "react";
 
-import FilterControlsSingle from "../../../components/FilterControlsSingle/FilterControlsSingle";
 import PageSectionLayout from "../../../components/PageSectionLayout/PageSectionLayout";
 import HourStackedGraph from "./components/HourStackedGraph";
+import FilterControlsSingle from "./components/FilterControlsSingle";
 
 const TimeStudySurvey = () => {
   return (
