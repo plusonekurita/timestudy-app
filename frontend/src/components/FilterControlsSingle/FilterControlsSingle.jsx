@@ -46,7 +46,7 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [draftDate, setDraftDate] = useState(dayjs());
+  // const [draftDate, setDraftDate] = useState(dayjs());
   const [selectedStaff, setSelectedStaff] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -167,19 +167,28 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
     }
   };
 
-  // ★ 単日の確定（OK）
-  const applyDate = () => {
-    if (draftDate && dayjs(draftDate).isValid()) {
-      setSelectedDate(draftDate);
-      setItem(LS_DATE_KEY, dayjs(draftDate).format("YYYY-MM-DD"));
+  // ★ 日付選択時にローカル保存
+  const handleDateChange = (newValue) => {
+    setSelectedDate(newValue);
+    if (newValue && dayjs(newValue).isValid()) {
+      setItem(LS_DATE_KEY, dayjs(newValue).format("YYYY-MM-DD"));
     }
     setAnchorEl(null);
   };
 
-  const setToday = () => {
-    const t = dayjs();
-    setDraftDate(t);
-  };
+  // ★ 単日の確定（OK）
+  // const applyDate = () => {
+  //   if (draftDate && dayjs(draftDate).isValid()) {
+  //     setSelectedDate(draftDate);
+  //     setItem(LS_DATE_KEY, dayjs(draftDate).format("YYYY-MM-DD"));
+  //   }
+  //   setAnchorEl(null);
+  // };
+
+  // const setToday = () => {
+  //   const t = dayjs();
+  //   setDraftDate(t);
+  // };
 
   // 出力 エクセル
   const handleExport = async () => {
@@ -210,7 +219,7 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
   };
 
   const handleOpen = (event) => {
-    setDraftDate(selectedDate);
+    // setDraftDate(selectedDate);
     setAnchorEl(event.currentTarget);
   };
 
@@ -253,13 +262,13 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
               }}
             >
               <DateCalendar
-                value={draftDate}
+                value={selectedDate}
                 format="YYYY年M月D日"
-                onChange={(v) => setDraftDate(v)}
+                onChange={handleDateChange}
                 reduceAnimations
               />
 
-              <Stack
+              {/* <Stack
                 direction="row"
                 alignItems="center"
                 justifyContent="space-between"
@@ -277,7 +286,7 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
                     OK
                   </Button>
                 </Stack>
-              </Stack>
+              </Stack> */}
             </Popover>
           </Box>
 

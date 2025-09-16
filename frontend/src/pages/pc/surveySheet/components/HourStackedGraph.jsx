@@ -169,25 +169,23 @@ const getGraphColorByName = (name, type) =>
   graphColors.default;
 
 /**
- * 引数は高さのみ。データは Redux の groupedByStaff から取得し、
- * 全スタッフ分の item をフラットにして元のロジックに渡す。
+ * 引数は高さのみ。データは Redux の record から取得し、
+ * 全レコード分の item をフラットにして元のロジックに渡す。
  * （見た目・挙動は元コードから一切変更なし）
  */
 export default function HourStackedGraph({ height = 380 }) {
-  const { groupedByStaff = {} } = useSelector((s) => s.timeRecord || {});
+  const { record = [] } = useSelector((s) => s.timeRecord || {});
 
-  // groupedByStaff: { [staffId]: Array<staffRecord> }
-  // staffRecord.record: Array<item({ name,label?,type,startTime,endTime,... })>
+  // record: Array<recordItem>
+  // recordItem.record: Array<item({ name,label?,type,startTime,endTime,... })>
   const records = useMemo(() => {
     const all = [];
-    Object.values(groupedByStaff || {}).forEach((staffRecs) => {
-      (staffRecs || []).forEach((sr) => {
-        const items = Array.isArray(sr?.record) ? sr.record : [];
-        items.forEach((it) => all.push(it));
-      });
+    (record || []).forEach((recordItem) => {
+      const items = Array.isArray(recordItem?.record) ? recordItem.record : [];
+      items.forEach((it) => all.push(it));
     });
     return all;
-  }, [groupedByStaff]);
+  }, [record]);
 
   // グラフ用データ
   const { data, keys } = useMemo(
