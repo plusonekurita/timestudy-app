@@ -209,7 +209,11 @@ export default function StaffCategory100Chart({ height = 420 }) {
     return map;
   }, [categories, labelToTypeName, TYPE_NAME_COLOR, theme.palette]);
 
-  if (!sortedRows.length) {
+  // データが存在しない、またはすべての値が0の場合は「データがありません」を表示
+  const hasData =
+    sortedRows.length > 0 && sortedRows.some((row) => row.__totalMin > 0);
+
+  if (!hasData) {
     return (
       <Box sx={{ py: 6, textAlign: "center" }}>
         <Typography variant="body1" color="text.secondary">

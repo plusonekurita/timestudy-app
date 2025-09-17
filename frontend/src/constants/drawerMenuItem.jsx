@@ -62,12 +62,12 @@ export const managementMenuItems = () => [
         icon: AccessTimeIcon,
         path: "/survey-sheet/time",
       },
-      {
-        id: "staff",
-        label: "職員向け調査票",
-        icon: GroupIcon,
-        path: "/survey-sheet/staff",
-      },
+      // {
+      //   id: "staff",
+      //   label: "職員向け調査票",
+      //   icon: GroupIcon,
+      //   path: "/survey-sheet/staff",
+      // },
       // {
       //   id: "user",
       //   label: "利用者向け調査票",

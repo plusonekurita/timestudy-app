@@ -134,7 +134,7 @@ export default function HourCategoryHeatmap({ height = 460 }) {
     return (
       <Box sx={{ py: 6, textAlign: "center" }}>
         <Typography variant="body1" color="text.secondary">
-          データがありません。日付範囲と職員（全員）を選択してください。
+          データがありません。日付範囲と職員を選択してください。
         </Typography>
       </Box>
     );

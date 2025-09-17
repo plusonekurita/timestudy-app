@@ -174,7 +174,7 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
       className="filter"
       adapterLocale="ja"
     >
-      <Box display="flex" justifyContent="space-between">
+      <Box display="flex" justifyContent="flex-end">
         <Box display="flex">
           {/* 日付選択 */}
           <Box display="flex" alignItems="center" gap={0.5} sx={{ mr: 3 }}>
