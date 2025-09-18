@@ -64,7 +64,16 @@ const timeRecordSlice = createSlice({
     groupedByStaff: {}, // { staffId: [records...] }
     staffMeta: [], // [{id, name}]
   },
-  reducers: {},
+  reducers: {
+    resetTimeRecord: (state) => {
+      state.loading = false;
+      state.error = null;
+      state.record = [];
+      state.officeRecords = [];
+      state.groupedByStaff = {};
+      state.staffMeta = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
       // 職員単体
@@ -99,4 +108,5 @@ const timeRecordSlice = createSlice({
   },
 });
 
+export const { resetTimeRecord } = timeRecordSlice.actions;
 export default timeRecordSlice.reducer;
