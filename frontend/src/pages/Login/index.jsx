@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
-import { getValue, setItem } from "../../utils/localStorageUtils";
+import { setItem } from "../../utils/localStorageUtils";
 import { showSnackbar } from "../../store/slices/snackbarSlice";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { setStaffList } from "../../store/slices/staffSlice";
@@ -45,54 +45,54 @@ const LoginPage = () => {
   const dispatch = useDispatch();
 
   // 本日以外の日付の記録を処理する関数
-  const processOldRecords = async (user) => {
-    const todayKey = new Date().toISOString().split("T")[0];
-    const allDailyRecords = getValue(`dailyTimeStudyRecords_${user.id}`, {});
-    const remainingRecords = {};
-    let saveCount = 0; // 保存件数をカウント
+  // const processOldRecords = async (user) => {
+  //   const todayKey = new Date().toISOString().split("T")[0];
+  //   const allDailyRecords = getValue(`dailyTimeStudyRecords_${user.id}`, {});
+  //   const remainingRecords = {};
+  //   let saveCount = 0; // 保存件数をカウント
 
-    // 本日以外の記録だけを抽出してサーバーに送るための準備処理
-    for (const dateKey in allDailyRecords) {
-      if (dateKey === todayKey) {
-        // 本日の記録をローカルストレージに残す用の処理
-        remainingRecords[dateKey] = allDailyRecords[dateKey];
-      } else {
-        // 当日以外の記録をDBに保存
-        try {
-          await apiFetch("/save-time-records", {
-            method: "POST",
-            body: {
-              staff: user,
-              record_date: dateKey,
-              record: allDailyRecords[dateKey],
-            },
-          });
+  //   // 本日以外の記録だけを抽出してサーバーに送るための準備処理
+  //   for (const dateKey in allDailyRecords) {
+  //     if (dateKey === todayKey) {
+  //       // 本日の記録をローカルストレージに残す用の処理
+  //       remainingRecords[dateKey] = allDailyRecords[dateKey];
+  //     } else {
+  //       // 当日以外の記録をDBに保存
+  //       try {
+  //         await apiFetch("/save-time-records", {
+  //           method: "POST",
+  //           body: {
+  //             staff: user,
+  //             record_date: dateKey,
+  //             record: allDailyRecords[dateKey],
+  //           },
+  //         });
 
-          saveCount++; // 保存成功したらカウント
-        } catch (err) {
-          console.error(`${dateKey} の記録保存に失敗:`, err);
-          dispatch(
-            showSnackbar({
-              message: `${dateKey} の記録保存に失敗しました。`,
-              severity: "error",
-            })
-          );
-          return; // 失敗したら処理中断
-        }
-      }
-    }
+  //         saveCount++; // 保存成功したらカウント
+  //       } catch (err) {
+  //         console.error(`${dateKey} の記録保存に失敗:`, err);
+  //         dispatch(
+  //           showSnackbar({
+  //             message: `${dateKey} の記録保存に失敗しました。`,
+  //             severity: "error",
+  //           })
+  //         );
+  //         return; // 失敗したら処理中断
+  //       }
+  //     }
+  //   }
 
-    // すべて成功したらローカルを更新
-    setItem(`dailyTimeStudyRecords_${user.id}`, remainingRecords);
-    if (saveCount > 0) {
-      dispatch(
-        showSnackbar({
-          message: "過去の記録をすべてサーバーに保存しました。",
-          severity: "info",
-        })
-      );
-    }
-  };
+  //   // すべて成功したらローカルを更新
+  //   setItem(`dailyTimeStudyRecords_${user.id}`, remainingRecords);
+  //   if (saveCount > 0) {
+  //     dispatch(
+  //       showSnackbar({
+  //         message: "過去の記録をすべてサーバーに保存しました。",
+  //         severity: "info",
+  //       })
+  //     );
+  //   }
+  // };
 
   // LoginForm: ログイン試行関数
   const handleLoginAttempt = async (uid, password) => {
@@ -149,10 +149,6 @@ const LoginPage = () => {
           role: data.role,
         })
       );
-
-      if (data.role !== "admin") {
-        await processOldRecords(data);
-      }
 
       // 管理者なら admin ページへ遷移
       navigate(user.role === "admin" ? "/admin" : "/menu");

@@ -8,11 +8,11 @@ export const menuItems = [
     icon: <img src={topMenuIcons.time} />,
     path: "/time",
   },
-  {
-    label: "調査票",
-    icon: <img src={topMenuIcons.sheet} />,
-    path: "/sheetList",
-  },
+  // {
+  //   label: "調査票",
+  //   icon: <img src={topMenuIcons.sheet} />,
+  //   path: "/sheetList",
+  // },
 ];
 
 // TODO: いずれマスターとしてDBに格納

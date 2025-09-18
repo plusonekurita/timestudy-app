@@ -26,12 +26,12 @@ export const GRAPH_OPTIONS_ADMIN = [
     label: "時間帯×カテゴリ（ヒートマップ）",
     dateMode: "range",
   },
-  { value: "paretoCategory", label: "カテゴリ別パレート", dateMode: "range" },
-  {
-    value: "productivityQuadrant",
-    label: "生産性クォドラント",
-    dateMode: "range",
-  },
+  // { value: "paretoCategory", label: "カテゴリ別パレート", dateMode: "range" },
+  // {
+  //   value: "productivityQuadrant",
+  //   label: "生産性クォドラント",
+  //   dateMode: "range",
+  // },
 ];
 
 export const GRAPH_OPTIONS_MEMBER = [

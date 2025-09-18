@@ -16,6 +16,7 @@ import {
   Logout as LogoutIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 import localeData from "dayjs/plugin/localeData";
 import { Avatar } from "@mui/material";
 import Menu from "@mui/material/Menu";
@@ -38,6 +39,7 @@ import { useStopwatchContext } from "../constants/StopwatchProvider";
 // ヘッダーコンポーネント
 const Header = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const [anchorEl, setAnchorEl] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const { id, userName } = useSelector((state) => state.auth);
@@ -277,23 +279,25 @@ const Header = () => {
             {userName}
           </Typography>
 
-          <Button
-            variant="outlined"
-            onClick={handleClickSave}
-            disabled={!canFinish}
-            sx={{
-              textAlign: "end",
-              justifyContent: "flex-end",
-              borderColor: "white",
-              color: "white",
-              "&:hover": {
-                color: "darkred",
-                borderColor: "darkred",
-              },
-            }}
-          >
-            勤務終了
-          </Button>
+          {location.pathname.startsWith("/time") && (
+            <Button
+              variant="outlined"
+              onClick={handleClickSave}
+              disabled={!canFinish}
+              sx={{
+                textAlign: "end",
+                justifyContent: "flex-end",
+                borderColor: "white",
+                color: "white",
+                "&:hover": {
+                  color: "darkred",
+                  borderColor: "darkred",
+                },
+              }}
+            >
+              勤務終了
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 

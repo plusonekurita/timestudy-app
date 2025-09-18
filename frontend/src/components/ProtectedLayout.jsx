@@ -74,7 +74,7 @@ const ProtectedLayout = () => {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
-    <Box sx={{ display: "flex", height: "100vh" }}>
+    <Box sx={{ display: "flex", height: "100%" }}>
       {/* ← 既存の「デスクトップ用ドロワー直置き」は削除 */}
 
       {/* 既存のローディング */}
@@ -142,6 +142,7 @@ const ProtectedLayout = () => {
           pt: isMobileDevice || isAdminPage ? HEADER_HEIGHT : 0,
           pb: !isMobileDevice ? 0 : FOOTER_HEIGHT,
           width: "100%",
+          height: isMobileDevice ? "100vh" : "100%", // スマホでは100vh、PCでは100%
           overflowY: "auto",
           overflowX: "hidden",
         }}
