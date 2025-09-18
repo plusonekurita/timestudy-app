@@ -173,7 +173,7 @@ const getGraphColorByName = (name, type) =>
  * 全スタッフ分の item をフラットにして元のロジックに渡す。
  * （見た目・挙動は元コードから一切変更なし）
  */
-export default function HourStackedGraph({ height = 380 }) {
+export default function HourStackedGraph() {
   const { groupedByStaff = {} } = useSelector((s) => s.timeRecord || {});
 
   // groupedByStaff: { [staffId]: Array<staffRecord> }
@@ -217,7 +217,7 @@ export default function HourStackedGraph({ height = 380 }) {
   const yMaxMinutes = 60; // 元の既定値を維持
 
   return (
-    <Box sx={{ width: "100%", height }}>
+    <Box sx={{ width: "100%", height: "451px" }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />

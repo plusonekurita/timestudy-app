@@ -21,22 +21,22 @@ function ComingSoon({ title }) {
   );
 }
 
-export default function GraphViewer({ type, height = 460 }) {
+export default function GraphViewer({ type }) {
   switch (type) {
     case "dailyCategoryStacked":
-      return <DailyCategoryStackedChart height={height} />;
+      return <DailyCategoryStackedChart />;
 
     case "staffType100":
-      return <StaffTypeMix100Chart height={height} />; // ← 追加
+      return <StaffTypeMix100Chart />; // ← 追加
 
     case "staffCategory100":
-      return <StaffCategory100Chart height={height} />;
+      return <StaffCategory100Chart />;
 
     case "hourStacked": // 一般職員用・時間帯×積み上げ
-      return <HourStackedGraph height={height} />;
+      return <HourStackedGraph />;
 
     case "hourCategoryHeatmap":
-      return <HourCategoryHeatmap height={height} />;
+      return <HourCategoryHeatmap />;
 
     case "paretoCategory":
       return <ComingSoon title="カテゴリ別パレート" />;

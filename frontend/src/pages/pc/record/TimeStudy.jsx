@@ -91,8 +91,8 @@ const TimeStudy = () => {
           </Box>
 
           {/* ビュアー */}
-          <Box sx={{ width: "100%", height: 460 }}>
-            <GraphViewer type={graphType} height={460} />
+          <Box sx={{ width: "100%", height: "100%" }}>
+            <GraphViewer type={graphType} />
           </Box>
         </Stack>
       </Box>

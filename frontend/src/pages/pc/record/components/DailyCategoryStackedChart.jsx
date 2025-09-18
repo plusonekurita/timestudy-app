@@ -48,7 +48,7 @@ function pickLabel(it) {
   return it?.label || it?.name || it?.type || "その他";
 }
 
-export default function DailyCategoryStackedChart({ height = 820 }) {
+export default function DailyCategoryStackedChart() {
   const theme = useTheme();
   // Redux からデータを取得
   const { officeRecords = [], record = [] } = useSelector(
@@ -138,11 +138,11 @@ export default function DailyCategoryStackedChart({ height = 820 }) {
   }
 
   return (
-    <Box sx={{ width: "100%", height }}>
+    <Box sx={{ width: "100%", height: "451px" }}>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
           data={chartData}
-          margin={{ top: 16, right: 24, left: 8, bottom: 8 }}
+          margin={{ top: 0, right: 24, left: 8, bottom: 8 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis

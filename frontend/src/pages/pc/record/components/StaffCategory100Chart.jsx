@@ -70,7 +70,7 @@ function CustomTooltip({ active, payload }) {
   );
 }
 
-export default function StaffCategory100Chart({ height = 420 }) {
+export default function StaffCategory100Chart() {
   const theme = useTheme();
   const {
     officeRecords = [],
@@ -225,12 +225,12 @@ export default function StaffCategory100Chart({ height = 420 }) {
 
   /** 7) 描画（label は表示専用、色は (type,name) → graphColor） */
   return (
-    <Box sx={{ width: "100%", height }}>
+    <Box sx={{ width: "100%", height: "445px" }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={sortedRows}
           layout="vertical"
-          margin={{ top: 8, right: 24, bottom: 8, left: 8 }}
+          margin={{ top: 8, right: 8, bottom: 8, left: 50 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis

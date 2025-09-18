@@ -264,7 +264,7 @@ const FilterControlsSingle = ({ allowAllStaff = true }) => {
           onClick={handleExport}
           disabled={isEmpty(timeStudyRecord)}
         >
-          出力
+          調査票出力
         </Button>
       </Box>
     </LocalizationProvider>

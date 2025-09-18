@@ -32,7 +32,7 @@ const TYPE_KEYS = Object.freeze([
 import { menuCategories } from "../../../../constants/menu";
 
 // このファイルはコンポーネントのみを default export（Fast Refresh 対応）
-export default function StaffTypeMix100Chart({ height = 420 }) {
+export default function StaffTypeMix100Chart() {
   const theme = useTheme();
   const {
     officeRecords = [],
@@ -209,12 +209,12 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
   };
 
   return (
-    <Box sx={{ width: "100%", height }}>
+    <Box sx={{ width: "100%", height: "452px" }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={sortedRows}
           layout="vertical"
-          margin={{ top: 8, right: 24, bottom: 8, left: 8 }}
+          margin={{ top: 8, right: 24, bottom: 8, left: 50 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis

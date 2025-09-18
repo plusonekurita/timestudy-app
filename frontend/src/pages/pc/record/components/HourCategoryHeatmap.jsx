@@ -17,7 +17,7 @@ function pickLabel(it) {
   return it?.label || it?.name || it?.type || "その他";
 }
 
-export default function HourCategoryHeatmap({ height = 460 }) {
+export default function HourCategoryHeatmap() {
   const theme = useTheme();
   const { officeRecords = [], record = [] } = useSelector(
     (s) => s.timeRecord || {}
@@ -90,6 +90,7 @@ export default function HourCategoryHeatmap({ height = 460 }) {
   };
 
   const cellSize = 22; // px（高さはスクロールで吸収）
+  const gap = 8; // px (gap: 2 = 8px)
   const hourLabels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
 
   // ドラッグでスクロール（パン）用
@@ -119,9 +120,8 @@ export default function HourCategoryHeatmap({ height = 460 }) {
       const el = scrollRef.current;
       if (!el) return;
       const dx = e.clientX - drag.startX;
-      const dy = e.clientY - drag.startY;
+      // 横方向のスクロールのみ（縦方向は無効）
       el.scrollLeft = drag.left - dx;
-      el.scrollTop = drag.top - dy;
     },
     [drag]
   );
@@ -141,29 +141,28 @@ export default function HourCategoryHeatmap({ height = 460 }) {
   }
 
   return (
-    <Paper
-      variant="outlined"
-      sx={{ p: 2, height: height, overflowY: "scroll" }}
-    >
+    <Paper variant="outlined" sx={{ p: 2, height: "930px" }}>
       <Box
-        ref={scrollRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={endDrag}
-        onMouseLeave={endDrag}
         sx={{
           display: "flex",
           flexDirection: "row",
           gap: 2,
-          overflow: "auto",
-          cursor: drag.active ? "grabbing" : "grab",
-          userSelect: drag.active ? "none" : undefined,
-          WebkitUserSelect: drag.active ? "none" : undefined,
-          MsUserSelect: drag.active ? "none" : undefined,
+          height: "100%",
         }}
       >
-        {/* Y 軸（カテゴリ名） */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {/* Y 軸（カテゴリ名） - 固定 */}
+        <Box
+          sx={{
+            display: "grid",
+            gridAutoRows: `${cellSize}px`,
+            rowGap: 2,
+            position: "sticky",
+            left: 0,
+            backgroundColor: "background.paper",
+            zIndex: 2,
+            height: "100%",
+          }}
+        >
           <Box sx={{ height: cellSize, width: 80 }} />
           {categoryLabels.map((label) => (
             <Box
@@ -174,6 +173,7 @@ export default function HourCategoryHeatmap({ height = 460 }) {
                 pr: 1,
                 display: "flex",
                 alignItems: "center",
+                marginTop: "-4px",
               }}
             >
               <Typography
@@ -188,8 +188,27 @@ export default function HourCategoryHeatmap({ height = 460 }) {
           ))}
         </Box>
 
-        {/* 本体グリッド */}
-        <Box sx={{ flex: 1 }}>
+        {/* スクロール可能なメインエリア */}
+        <Box
+          ref={scrollRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={endDrag}
+          onMouseLeave={endDrag}
+          sx={{
+            flex: 1,
+            overflowX: "auto",
+            overflowY: "hidden",
+            cursor: drag.active ? "grabbing" : "grab",
+            userSelect: drag.active ? "none" : undefined,
+            WebkitUserSelect: drag.active ? "none" : undefined,
+            MsUserSelect: drag.active ? "none" : undefined,
+            scrollbarWidth: "none", // Firefox
+            "&::-webkit-scrollbar": {
+              display: "none", // Chrome, Safari, Edge
+            },
+          }}
+        >
           {/* X 軸（時間） */}
           <Box
             sx={{
@@ -197,6 +216,11 @@ export default function HourCategoryHeatmap({ height = 460 }) {
               gridTemplateColumns: `repeat(24, ${cellSize}px)`,
               columnGap: 2,
               mb: 1,
+              position: "sticky",
+              top: 0,
+              backgroundColor: "background.paper",
+              zIndex: 3,
+              height: cellSize,
             }}
           >
             {hourLabels.map((h) => (
@@ -216,6 +240,8 @@ export default function HourCategoryHeatmap({ height = 460 }) {
               gridAutoRows: `${cellSize}px`,
               columnGap: 2,
               rowGap: 2,
+              height: `${categoryLabels.length * (cellSize + gap)}px`, // 行数に応じた固定高さ
+              alignContent: "start", // 上端揃え
             }}
           >
             {matrix.map((row, ri) =>
