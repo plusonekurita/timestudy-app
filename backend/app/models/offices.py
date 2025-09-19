@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, String, Date, Boolean, Text, DateTime
+from sqlalchemy import Integer, String, Date, Boolean, Text, DateTime, func
 from datetime import datetime, timezone, timedelta
 from app.db.database import Base
 
@@ -17,12 +17,14 @@ class Offices(Base):
     email: Mapped[str] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        server_default=func.now(),
         default=jst_now
     )
-    update_at: Mapped[datetime] = mapped_column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        server_default=func.now(),
         default=jst_now,
         onupdate=jst_now
     )
 
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default="true", default=True)

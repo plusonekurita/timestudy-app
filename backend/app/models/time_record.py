@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, Date, DateTime, ForeignKey, JSON
+from sqlalchemy import Integer, Date, DateTime, ForeignKey, JSON, func
 # import datetime
 from datetime import datetime, timezone, date, timedelta
 from app.db.database import Base
 
 JST = timezone(timedelta(hours=9))  # 日本時間タイムゾーン
+def jst_now():
+    return datetime.now(JST)
 
 class TimeRecord(Base):
     __tablename__ = "time_records"
@@ -13,6 +15,9 @@ class TimeRecord(Base):
     staff_id: Mapped[int] = mapped_column(ForeignKey("staffs.id"))
     record_date: Mapped[date] = mapped_column(Date)
     record: Mapped[dict] = mapped_column(JSON, nullable=False)  # 配列形式のJSONもOK
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(JST)
-)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=jst_now
+    )
 
