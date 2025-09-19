@@ -47,11 +47,12 @@ export default function HourCategoryHeatmap() {
   );
 
   // ヒートマップ用データ行列 [rows = categories][cols = 24h]
-  const { matrix, maxValue } = useMemo(() => {
+  const { matrix, maxValue, visibleHours } = useMemo(() => {
     const rows = categoryLabels.length;
     const cols = 24;
     const m = Array.from({ length: rows }, () => Array(cols).fill(0));
     let maxV = 0;
+    const hourHasData = Array(cols).fill(false); // 各時間帯にデータがあるかどうか
 
     source.forEach((rec) => {
       const items = Array.isArray(rec.record) ? rec.record : [];
@@ -68,11 +69,18 @@ export default function HourCategoryHeatmap() {
         const min = minutesFrom(it);
         if (!min) return;
         m[row][hour] += min;
+        hourHasData[hour] = true; // この時間帯にデータがあることを記録
         if (m[row][hour] > maxV) maxV = m[row][hour];
       });
     });
 
-    return { matrix: m, maxValue: maxV };
+    // データがある時間帯のみを抽出
+    const visibleHours = hourHasData
+      .map((hasData, hour) => ({ hour, hasData }))
+      .filter((item) => item.hasData)
+      .map((item) => item.hour);
+
+    return { matrix: m, maxValue: maxV, visibleHours };
   }, [source, labelToRow, categoryLabels.length]);
 
   // カラースケール（値に応じて不透明度を変える）
@@ -91,7 +99,7 @@ export default function HourCategoryHeatmap() {
 
   const cellSize = 22; // px（高さはスクロールで吸収）
   const gap = 8; // px (gap: 2 = 8px)
-  const hourLabels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+  const hourLabels = visibleHours.map((hour) => `${hour}:00`);
 
   // ドラッグでスクロール（パン）用
   const scrollRef = useRef(null);
@@ -213,7 +221,7 @@ export default function HourCategoryHeatmap() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: `repeat(24, ${cellSize}px)`,
+              gridTemplateColumns: `repeat(${visibleHours.length}, ${cellSize}px)`,
               columnGap: 2,
               mb: 1,
               position: "sticky",
@@ -236,7 +244,7 @@ export default function HourCategoryHeatmap() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: `repeat(24, ${cellSize}px)`,
+              gridTemplateColumns: `repeat(${visibleHours.length}, ${cellSize}px)`,
               gridAutoRows: `${cellSize}px`,
               columnGap: 2,
               rowGap: 2,
@@ -245,17 +253,17 @@ export default function HourCategoryHeatmap() {
             }}
           >
             {matrix.map((row, ri) =>
-              row.map((v, ci) => (
+              visibleHours.map((hour) => (
                 <Box
-                  key={`${ri}-${ci}`}
-                  title={`${categoryLabels[ri]} / ${ci}:00\n${Math.round(
-                    v
+                  key={`${ri}-${hour}`}
+                  title={`${categoryLabels[ri]} / ${hour}:00\n${Math.round(
+                    row[hour]
                   )} 分`}
                   sx={{
                     width: cellSize,
                     height: cellSize,
                     borderRadius: 1,
-                    backgroundColor: colorOf(v),
+                    backgroundColor: colorOf(row[hour]),
                     border: `1px solid ${theme.palette.divider}`,
                   }}
                 />
