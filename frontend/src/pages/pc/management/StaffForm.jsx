@@ -270,7 +270,8 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
               fullWidth
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
+          {/* メールアドレスと電話番号を一時的に非表示 */}
+          {/* <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label="メールアドレス"
               value={values.email}
@@ -291,7 +292,7 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
               fullWidth
               autoComplete="tel"
             />
-          </Grid>
+          </Grid> */}
 
           {/* フラグ（横並び） */}
           <Grid size={{ xs: 12, md: 6 }}>
