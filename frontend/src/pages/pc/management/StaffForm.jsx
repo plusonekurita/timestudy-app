@@ -14,6 +14,7 @@ import React, { useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 
 import { showSnackbar } from "../../../store/slices/snackbarSlice";
+import { setStaffList } from "../../../store/slices/staffSlice";
 import { getValue } from "../../../utils/localStorageUtils";
 import { apiFetch } from "../../../utils/api";
 
@@ -133,6 +134,16 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
     setErrors({ login_id: "", password: "", staff_code: "" });
   };
 
+  // スタッフリストを再取得する関数
+  const refreshStaffList = async () => {
+    try {
+      const staffList = await apiFetch(`/offices/${resolvedOfficeId}/staffs`);
+      dispatch(setStaffList(staffList));
+    } catch (error) {
+      console.warn("スタッフリストの再取得に失敗しました", error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e?.preventDefault?.();
 
@@ -174,6 +185,9 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
 
       // フォーム初期化
       resetForm();
+
+      // スタッフリストを再取得
+      await refreshStaffList();
 
       // 成功通知
       dispatch(
