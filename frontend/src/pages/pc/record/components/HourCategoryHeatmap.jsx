@@ -3,6 +3,7 @@ import { Box, Typography, useTheme, Paper } from "@mui/material";
 import dayjs from "dayjs";
 import { useSelector } from "react-redux";
 import { menuCategories } from "../../../../constants/menu";
+import { colors } from "../../../../constants/theme";
 
 function minutesFrom(item) {
   const sec =
@@ -46,6 +47,24 @@ export default function HourCategoryHeatmap() {
     [categoryLabels]
   );
 
+  // カテゴリごとの背景色を取得する関数
+  const getCategoryColor = useCallback((label) => {
+    // menuCategoriesから該当するアイテムの色を検索
+    for (const category of menuCategories) {
+      const item = category.items.find((item) => item.label === label);
+      if (item) {
+        // 移動・移乗・体位交換は直接介護の色を使用
+        if (label === "移動・移乗・体位交換") {
+          return colors.directCare;
+        }
+        return item.color;
+      }
+    }
+
+    // 見つからない場合はデフォルト色
+    return colors.other;
+  }, []);
+
   // ヒートマップ用データ行列 [rows = categories][cols = 24h]
   const { matrix, maxValue, visibleHours } = useMemo(() => {
     const rows = categoryLabels.length;
@@ -86,7 +105,8 @@ export default function HourCategoryHeatmap() {
   // カラースケール（値に応じて不透明度を変える）
   const baseColor = theme.palette.primary.main;
   const colorOf = (v) => {
-    if (maxValue <= 0) return "transparent";
+    if (v <= 0) return "white"; // 記録がない場合は白色
+    if (maxValue <= 0) return "white";
     const t = Math.max(0, Math.min(1, v / maxValue));
     const alpha = 0.08 + 0.72 * Math.pow(t, 0.8); // 目感調整
     // rgba 生成（簡易）：#RRGGBB → r,g,b
@@ -137,7 +157,6 @@ export default function HourCategoryHeatmap() {
     () => setDrag((d) => ({ ...d, active: false })),
     []
   );
-
   if (!source.length) {
     return (
       <Box sx={{ py: 6, textAlign: "center" }}>
@@ -181,14 +200,21 @@ export default function HourCategoryHeatmap() {
                 pr: 1,
                 display: "flex",
                 alignItems: "center",
-                marginTop: "-4px",
+                marginTop: "-7px",
+                backgroundColor: getCategoryColor(label),
+                borderRadius: 1,
+                border: `1px solid ${theme.palette.divider}`,
               }}
             >
               <Typography
                 variant="caption"
                 noWrap
                 title={label}
-                sx={{ color: "text.secondary" }}
+                sx={{
+                  color: "white",
+                  fontWeight: 500,
+                  px: 1,
+                }}
               >
                 {label}
               </Typography>
@@ -265,8 +291,27 @@ export default function HourCategoryHeatmap() {
                     borderRadius: 1,
                     backgroundColor: colorOf(row[hour]),
                     border: `1px solid ${theme.palette.divider}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
                   }}
-                />
+                >
+                  {row[hour] > 0 && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: "8px",
+                        fontWeight: 600,
+                        color: row[hour] > maxValue * 0.5 ? "white" : "black",
+                        textAlign: "center",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {Math.round(row[hour])}
+                    </Typography>
+                  )}
+                </Box>
               ))
             )}
           </Box>
