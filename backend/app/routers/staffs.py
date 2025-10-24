@@ -36,6 +36,16 @@ class StaffResponse(BaseModel):
         "from_attributes": True
     }
 
+# スタッフ更新
+class StaffUpdate(BaseModel):
+    name: str = Field(..., min_length=1)
+    staff_code: str = Field(..., min_length=1)
+    email: Optional[EmailStr] = None
+    phone_number: Optional[str] = None
+    job: Optional[str] = None
+    is_active: bool = True
+    is_admin: bool = False
+
 # スタッフ削除
 class StaffDelete(BaseModel):
     id: int = Field(..., description="削除対象スタッフのID")
@@ -106,6 +116,58 @@ def create_staff(office_id: int, payload: StaffCreate, db: Session = Depends(get
         db.rollback()
         print("❌ スタッフ追加エラー:", str(e))
         raise HTTPException(status_code=500, detail="スタッフ登録中にエラーが発生しました")
+
+
+# スタッフ更新
+@router.put(
+    "/offices/{office_id}/staffs/{staff_id}",
+    response_model=StaffResponse,
+)
+def update_staff(office_id: int, staff_id: int, payload: StaffUpdate, db: Session = Depends(get_db)):
+    try:
+        # 対象スタッフを取得
+        staff = (
+            db.query(Staffs)
+            .filter(Staffs.office_id == office_id, Staffs.id == staff_id)
+            .first()
+        )
+        
+        if not staff:
+            raise HTTPException(status_code=404, detail="該当するスタッフが見つかりませんでした。")
+
+        # 職員コード重複チェック（自分以外）
+        exists_code = (
+            db.query(Staffs)
+            .filter(
+                Staffs.office_id == office_id,
+                Staffs.staff_code == payload.staff_code,
+                Staffs.id != staff_id
+            )
+            .first()
+        )
+        if exists_code:
+            raise HTTPException(status_code=409, detail="この職員コードは既に使用されています。")
+
+        # スタッフ情報を更新
+        staff.name = payload.name
+        staff.staff_code = payload.staff_code
+        staff.email = payload.email
+        staff.phone_number = payload.phone_number
+        staff.job = payload.job
+        staff.is_active = payload.is_active
+        staff.is_admin = payload.is_admin
+
+        db.commit()
+        db.refresh(staff)
+
+        return staff
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print("❌ スタッフ更新エラー:", str(e))
+        raise HTTPException(status_code=500, detail="スタッフ更新中にエラーが発生しました")
 
 
 # スタッフ削除

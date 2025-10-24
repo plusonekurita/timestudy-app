@@ -25,6 +25,8 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import React, { useEffect, useMemo, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -129,9 +131,23 @@ const StaffList = () => {
     severity: "success",
   });
 
+  // 編集UI用
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    staff_code: "",
+    job: "",
+    email: "",
+    phone_number: "",
+    is_active: true,
+    is_admin: false,
+  });
+  const [editErrors, setEditErrors] = useState({});
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
   // フィルタ
   const [q, setQ] = useState("");
-  const [dep, setDep] = useState("all");
   const [st, setSt] = useState("all");
 
   // ページネーション
@@ -144,6 +160,15 @@ const StaffList = () => {
 
   const user = getValue("user");
   const office = user?.office;
+
+  // 全角→半角（英数字）
+  const toHalfWidthEN = (str = "") =>
+    String(str).replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) =>
+      String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+    );
+
+  // 半角数字のみの正規表現
+  const reDigits = /^[0-9]+$/;
 
   // 初期取得
   useEffect(() => {
@@ -186,14 +211,13 @@ const StaffList = () => {
     return rows.filter((r) => {
       const hitQ =
         !q || r.name.includes(q) || r.code.includes(q) || r.title.includes(q);
-      const hitDep = dep === "all";
       const hitSt =
         st === "all" ||
         (st === "active" && r.is_active) ||
         (st === "inactive" && !r.is_active);
-      return hitQ && hitDep && hitSt;
+      return hitQ && hitSt;
     });
-  }, [rows, q, dep, st]);
+  }, [rows, q, st]);
 
   // 可視行
   const visibleRows = useMemo(() => {
@@ -213,8 +237,127 @@ const StaffList = () => {
     setPage(0);
   };
 
+  // 編集フォームのバリデーション
+  const validateEditForm = (form) => {
+    const errors = {};
+    if (!form.name.trim()) errors.name = "氏名は必須です";
+    if (!form.staff_code.trim()) {
+      errors.staff_code = "職員コードは必須です";
+    } else if (!reDigits.test(form.staff_code)) {
+      errors.staff_code = "半角数字のみで入力してください";
+    }
+    return errors;
+  };
+
+  // 編集フォームの初期化
+  const initializeEditForm = (staff) => {
+    setEditForm({
+      name: staff.name || "",
+      staff_code: staff.code || "",
+      job: staff.title || "",
+      email: staff.email || "",
+      phone_number: staff.phone_number || "",
+      is_active: staff.is_active,
+      is_admin: staff.is_admin,
+    });
+    setEditErrors({});
+  };
+
+  // 編集ダイアログを開く
   const onEdit = (row) => {
-    console.log("edit", row);
+    setEditingStaff(row);
+    initializeEditForm(row);
+    setEditDialogOpen(true);
+  };
+
+  // 編集フォームの変更ハンドラ
+  const handleEditFormChange = (field) => (e) => {
+    let value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
+
+    // 職員コードの場合は半角数字のみに変換
+    if (field === "staff_code") {
+      value = toHalfWidthEN(String(value))
+        .replace(/\s/g, "")
+        .replace(/[^0-9]/g, "");
+    }
+
+    setEditForm((prev) => ({ ...prev, [field]: value }));
+
+    // エラーをクリア
+    if (editErrors[field]) {
+      setEditErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  // 編集の保存
+  const handleEditSave = async () => {
+    const errors = validateEditForm(editForm);
+    setEditErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      dispatch(
+        showSnackbar({
+          message: "入力内容を確認してください",
+          severity: "warning",
+        })
+      );
+      return;
+    }
+
+    if (!editingStaff || !office?.id) return;
+
+    setEditSubmitting(true);
+    try {
+      await apiFetch(`/offices/${office.id}/staffs/${editingStaff.id}`, {
+        method: "PUT",
+        body: {
+          name: editForm.name,
+          staff_code: editForm.staff_code,
+          job: editForm.job || null,
+          email: editForm.email || null,
+          phone_number: editForm.phone_number || null,
+          is_active: editForm.is_active,
+          is_admin: editForm.is_admin,
+        },
+      });
+
+      // 成功時: ローカル状態を更新
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === editingStaff.id
+            ? {
+                ...row,
+                name: editForm.name,
+                code: editForm.staff_code,
+                title: editForm.job,
+                email: editForm.email,
+                is_active: editForm.is_active,
+                is_admin: editForm.is_admin,
+              }
+            : row
+        )
+      );
+
+      dispatch(
+        showSnackbar({
+          message: "スタッフ情報を更新しました",
+          severity: "success",
+        })
+      );
+
+      setEditDialogOpen(false);
+      setEditingStaff(null);
+    } catch (e) {
+      dispatch(
+        showSnackbar({
+          message: e?.message || "更新に失敗しました",
+          severity: "error",
+        })
+      );
+    } finally {
+      setEditSubmitting(false);
+    }
   };
 
   //-------- 削除実装（フロント）--------
@@ -407,6 +550,124 @@ const StaffList = () => {
           <Button onClick={() => setConfirmOpen(false)}>キャンセル</Button>
           <Button color="error" onClick={onDelete} autoFocus>
             削除する
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 編集ダイアログ */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>スタッフ情報の編集</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            <Grid container spacing={2}>
+              {/* 基本情報 */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="氏名 *"
+                  value={editForm.name}
+                  onChange={handleEditFormChange("name")}
+                  size="small"
+                  required
+                  fullWidth
+                  error={Boolean(editErrors.name)}
+                  helperText={editErrors.name}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="職員コード *"
+                  value={editForm.staff_code}
+                  onChange={handleEditFormChange("staff_code")}
+                  size="small"
+                  required
+                  fullWidth
+                  error={Boolean(editErrors.staff_code)}
+                  helperText={editErrors.staff_code}
+                  inputProps={{
+                    inputMode: "numeric",
+                    pattern: "[0-9]*",
+                    maxLength: 20,
+                  }}
+                />
+              </Grid>
+
+              {/* 業務情報 */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="役職"
+                  value={editForm.job}
+                  onChange={handleEditFormChange("job")}
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="メールアドレス"
+                  value={editForm.email}
+                  onChange={handleEditFormChange("email")}
+                  size="small"
+                  type="email"
+                  fullWidth
+                />
+              </Grid>
+
+              {/* 電話番号 */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  label="電話番号"
+                  value={editForm.phone_number}
+                  onChange={handleEditFormChange("phone_number")}
+                  size="small"
+                  type="tel"
+                  fullWidth
+                />
+              </Grid>
+
+              {/* フラグ */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Stack direction="row" spacing={3} alignItems="center">
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={editForm.is_active}
+                        onChange={handleEditFormChange("is_active")}
+                      />
+                    }
+                    label="稼働中"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={editForm.is_admin}
+                        onChange={handleEditFormChange("is_admin")}
+                      />
+                    }
+                    label="管理者権限"
+                  />
+                </Stack>
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setEditDialogOpen(false)}
+            disabled={editSubmitting}
+          >
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleEditSave}
+            variant="contained"
+            disabled={editSubmitting}
+          >
+            {editSubmitting ? "更新中..." : "更新"}
           </Button>
         </DialogActions>
       </Dialog>
