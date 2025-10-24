@@ -42,9 +42,11 @@ export const useTimelineRecords = (date) => {
 
     const loadData = async () => {
       if (isToday) {
-        // ローカルストレージから取得
+        // 表示用ローカルストレージから取得
         try {
-          const raw = localStorage.getItem(`dailyTimeStudyRecords_${user.id}`);
+          const raw = localStorage.getItem(
+            `dailyTimeStudyRecords_display_${user.id}`
+          );
           const parsed = raw ? JSON.parse(raw) : {};
           const todayRecords = parsed[dateKey] || [];
           setRecords(todayRecords);

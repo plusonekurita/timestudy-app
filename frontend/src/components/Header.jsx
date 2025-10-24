@@ -129,7 +129,7 @@ const Header = () => {
           record: todayRecord,
         },
       });
-      // 保存成功時は当日分のローカル記録を削除
+      // 保存成功時は当日分のDB保存用ローカル記録を削除（表示用は残す）
       const updatedRecords = { ...allDailyRecords };
       delete updatedRecords[todayKey];
       if (Object.keys(updatedRecords).length === 0) {

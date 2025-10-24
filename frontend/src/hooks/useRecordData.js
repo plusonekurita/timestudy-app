@@ -33,8 +33,11 @@ export const useRecordData = (records = [], startDate, endDate) => {
       return;
     }
 
-    // ローカルストレージから当日記録を取得
-    const allDailyRecords = getValue(`dailyTimeStudyRecords_${user.id}`, {});
+    // 表示用ローカルストレージから当日記録を取得
+    const allDailyRecords = getValue(
+      `dailyTimeStudyRecords_display_${user.id}`,
+      {}
+    );
     const isTodaySelected = startKey === todayKey || endKey === todayKey;
     const localRecordObject =
       isTodaySelected && allDailyRecords[todayKey]?.length

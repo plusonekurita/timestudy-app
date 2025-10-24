@@ -70,15 +70,24 @@ export const useStopwatch = () => {
         try {
           const recordDateKey = getRecordDate(startTime);
           const key = `dailyTimeStudyRecords_${user.id}`;
-          const dailyRecords = getValue(key, {}); // 新しいキー
+          const displayKey = `dailyTimeStudyRecords_display_${user.id}`;
+          const dailyRecords = getValue(key, {}); // DB保存用
+          const displayRecords = getValue(displayKey, {}); // 表示用
 
           // 記録する日付のキーがあるか確認
           if (!dailyRecords[recordDateKey]) {
             dailyRecords[recordDateKey] = [];
           }
+          if (!displayRecords[recordDateKey]) {
+            displayRecords[recordDateKey] = [];
+          }
+
           // 記録を配列に追加(日付ごとに)
           dailyRecords[recordDateKey].push(record);
+          displayRecords[recordDateKey].push(record);
+
           setItem(key, dailyRecords);
+          setItem(displayKey, displayRecords);
         } catch (error) {
           console.error("ローカルストレージへの記録保存に失敗しました:", error);
           // TODO:ユーザーにエラー通知
@@ -143,13 +152,23 @@ export const useStopwatch = () => {
 
       try {
         const dailyKey = `dailyTimeStudyRecords_${user.id}`;
+        const displayKey = `dailyTimeStudyRecords_display_${user.id}`;
         const recordDateKey = getRecordDate(startTime);
         const dailyRecords = getValue(dailyKey, {});
+        const displayRecords = getValue(displayKey, {});
+
         if (!dailyRecords[recordDateKey]) {
           dailyRecords[recordDateKey] = [];
         }
+        if (!displayRecords[recordDateKey]) {
+          displayRecords[recordDateKey] = [];
+        }
+
         dailyRecords[recordDateKey].push(record);
+        displayRecords[recordDateKey].push(record);
+
         setItem(dailyKey, dailyRecords);
+        setItem(displayKey, displayRecords);
       } catch (error) {
         // TODO: ユーザーにエラー通知
         console.error("ローカルストレージへの記録保存に失敗しました:", error);
