@@ -15,7 +15,11 @@ const LoginForm = ({ onSubmitAttempt }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      style={{ width: "100%" }}
+    >
       <div>
         <TextField
           label="ユーザー名"
@@ -29,6 +33,11 @@ const LoginForm = ({ onSubmitAttempt }) => {
           {...register("username")}
           error={!!errors.username}
           helperText={errors.username?.message}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              fontSize: "16px", // スマホでのズーム防止
+            },
+          }}
         />
       </div>
       <div>
@@ -41,6 +50,11 @@ const LoginForm = ({ onSubmitAttempt }) => {
           {...register("password")}
           error={!!errors.password}
           helperText={errors.password?.message}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              fontSize: "16px", // スマホでのズーム防止
+            },
+          }}
         />
       </div>
       <Button
@@ -49,6 +63,10 @@ const LoginForm = ({ onSubmitAttempt }) => {
         color="primary"
         style={{ marginTop: 15 }}
         fullWidth
+        sx={{
+          fontSize: "16px",
+          padding: "12px",
+        }}
       >
         ログイン
       </Button>
