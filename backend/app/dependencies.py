@@ -1,10 +1,9 @@
 # app/dependencies.py
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 import jwt
 import os
-from app.models.user import User
 from app.db.database import get_db
 
 # SECRET_KEY = os.getenv("SECRET_KEY", "changeme")
@@ -33,7 +32,3 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         print("トークンデコードエラー:", e)
         raise HTTPException(status_code=401, detail="Invalid token")
 
-def get_current_admin_user(current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="管理者権限が必要です")
-    return current_user

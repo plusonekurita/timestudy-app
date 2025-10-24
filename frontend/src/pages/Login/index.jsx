@@ -129,6 +129,8 @@ const LoginPage = () => {
         officeId: data.officeId,
         office: data.office,
         isAdmin: data.isAdmin,
+        role: data.role,
+        version: data.version,
       };
 
       // ローカルに保存
@@ -150,8 +152,8 @@ const LoginPage = () => {
         })
       );
 
-      // 管理者なら admin ページへ遷移
-      navigate(user.role === "admin" ? "/admin" : "/menu");
+      // メニュー画面へ遷移
+      navigate("/menu");
       return true;
     } catch (err) {
       console.log(err);
