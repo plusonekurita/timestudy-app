@@ -3,7 +3,6 @@ import { Box, IconButton, Tooltip } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import React from "react";
 
-
 const HANDLE_W_SIZE = 25; // 取っ手の幅
 const HANDLE_H_SIZE = 52; // 取っ手の高さ
 
@@ -18,11 +17,12 @@ export default function EdgeMenuHandle({
 
   return (
     <Box
+      data-testid="edge-menu-handle"
       sx={{
         position: "fixed",
         top: "10%",
         left: 0,
-        zIndex: (t) => t.zIndex.drawer + 2,
+        zIndex: (t) => t.zIndex.drawer + 1,
         transform: open ? `translateX(${drawerWidth}px)` : "translateX(0)",
         transition: "transform 240ms cubic-bezier(0.4, 0, 0.2, 1)",
         width: HANDLE_W_SIZE,
@@ -37,6 +37,8 @@ export default function EdgeMenuHandle({
         justifyContent: "center",
         ml: open ? 0 : "-2px",
         overflow: "hidden",
+        pointerEvents: "auto",
+        cursor: "pointer",
       }}
     >
       <Tooltip title={open ? "閉じる" : "メニュー"} placement="right">
@@ -47,6 +49,7 @@ export default function EdgeMenuHandle({
             color: "inherit",
             "&:hover": { bgcolor: "rgba(234, 234, 234, 0.08)" },
             "&:focus": { outline: "none" },
+            pointerEvents: "auto",
           }}
           aria-label="toggle menu"
         >
