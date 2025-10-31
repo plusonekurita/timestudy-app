@@ -138,8 +138,6 @@ const StaffList = () => {
     name: "",
     staff_code: "",
     job: "",
-    email: "",
-    phone_number: "",
     is_active: true,
     is_admin: false,
   });
@@ -255,8 +253,6 @@ const StaffList = () => {
       name: staff.name || "",
       staff_code: staff.code || "",
       job: staff.title || "",
-      email: staff.email || "",
-      phone_number: staff.phone_number || "",
       is_active: staff.is_active,
       is_admin: staff.is_admin,
     });
@@ -315,8 +311,6 @@ const StaffList = () => {
           name: editForm.name,
           staff_code: editForm.staff_code,
           job: editForm.job || null,
-          email: editForm.email || null,
-          phone_number: editForm.phone_number || null,
           is_active: editForm.is_active,
           is_admin: editForm.is_admin,
         },
@@ -331,7 +325,6 @@ const StaffList = () => {
                 name: editForm.name,
                 code: editForm.staff_code,
                 title: editForm.job,
-                email: editForm.email,
                 is_active: editForm.is_active,
                 is_admin: editForm.is_admin,
               }
@@ -603,28 +596,6 @@ const StaffList = () => {
                   value={editForm.job}
                   onChange={handleEditFormChange("job")}
                   size="small"
-                  fullWidth
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="メールアドレス"
-                  value={editForm.email}
-                  onChange={handleEditFormChange("email")}
-                  size="small"
-                  type="email"
-                  fullWidth
-                />
-              </Grid>
-
-              {/* 電話番号 */}
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  label="電話番号"
-                  value={editForm.phone_number}
-                  onChange={handleEditFormChange("phone_number")}
-                  size="small"
-                  type="tel"
                   fullWidth
                 />
               </Grid>
