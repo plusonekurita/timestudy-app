@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
-from app.models.user import User
 from app.models.offices import Offices
 from app.models.staffs import Staffs
 from app.db.database import SessionLocal
@@ -11,25 +10,6 @@ JST = timezone(timedelta(hours=9))
 def create_initial_users_and_offices():
     db: Session = SessionLocal()
     try:
-        # 管理者ユーザー
-        if not db.query(User).filter(User.uid == "admin").first():
-            db.add(User(
-                uid="admin",
-                name="管理者",
-                password=bcrypt.hash("1964101001"),
-                version=1,
-                role="admin"
-            ))
-
-        # テストユーザー
-        if not db.query(User).filter(User.uid == "plusone").first():
-            db.add(User(
-                uid="plusone",
-                name="プラスワン",
-                password=bcrypt.hash("1964101001"),
-                version=1,
-                role="user"
-            ))
 
         # テスト事業所
         if not db.query(Offices).filter(Offices.name == "プラスワン").first():

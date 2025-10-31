@@ -25,7 +25,7 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 # 初期データの作成
-create_initial_users_and_offices()
+# create_initial_users_and_offices()
 
 # ✅ APIエンドポイントを /api/* に統一
 app.include_router(auth.router, prefix="/api")
