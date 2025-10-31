@@ -1,7 +1,6 @@
 // src/pages/Login/index
 import "./style.scss";
 
-import useMediaQuery from "@mui/material/useMediaQuery";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -173,9 +172,15 @@ const LoginPage = () => {
   return (
     <div className="login-page">
       <LoadingOverlay loading={loading} />
-      <h1>ログイン</h1>
-      <LoginForm onSubmitAttempt={handleLoginAttempt} />
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <div style={{ width: "100%", maxWidth: "100%" }}>
+        <h1>ログイン</h1>
+        <LoginForm onSubmitAttempt={handleLoginAttempt} />
+        {error && (
+          <p style={{ color: "red", textAlign: "center", marginTop: "16px" }}>
+            {error}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
