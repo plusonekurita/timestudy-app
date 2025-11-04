@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import time_records, ws, staffs, auth
+from app.routers import time_records, ws, staffs, auth, offices
 from app.db.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -32,3 +32,4 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(time_records.router, prefix="/api")
 app.include_router(ws.router)
 app.include_router(staffs.router, prefix="/api")
+app.include_router(offices.router, prefix="/api")

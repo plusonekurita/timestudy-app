@@ -26,6 +26,10 @@ import { performLogout } from "./utils/auth";
 import MainPage from "./pages/mobile/Main";
 import TopMenu from "./pages/TopMenu";
 import LoginPage from "./pages/Login";
+import AdminPage from "./pages/Admin";
+import AddOfficePage from "./pages/Admin/AddOffice";
+import OfficesPage from "./pages/Admin/Offices";
+import StaffsPage from "./pages/Admin/Staffs";
 
 // アイドルタイマーの設定時間 TODO: タイムスタディなので必要なのか検討
 const IDLE_TIMEOUT = 6 * 60 * 60 * 1000; // 6時間
@@ -82,6 +86,12 @@ function App() {
         <Routes>
           {/* ログインページ*/}
           <Route path="/login" element={<LoginPage />} />
+
+          {/* 管理画面（簡易版・公開ルート）*/}
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/offices/new" element={<AddOfficePage />} />
+          <Route path="/admin/offices" element={<OfficesPage />} />
+          <Route path="/admin/staffs" element={<StaffsPage />} />
 
           {/* 認証が必要なページ*/}
           <Route element={<ProtectedLayout />}>

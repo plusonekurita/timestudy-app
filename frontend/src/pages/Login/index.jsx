@@ -98,6 +98,42 @@ const LoginPage = () => {
     setLoading(true);
     setError(null);
     try {
+      // 管理者ログインはバックエンドでIP制限を含め判定
+      if (uid === "admin") {
+        const data = await apiFetch("/admin/login", {
+          method: "POST",
+          body: { uid, password },
+          auth: false,
+        });
+
+        localStorage.setItem("access_token", data.access_token);
+        setItem("user", {
+          id: 0,
+          uid: "admin",
+          userName: "管理者",
+          isAdmin: true,
+          role: "admin",
+          version: 1,
+        });
+        dispatch(
+          showSnackbar({
+            message: "管理者としてログインしました",
+            severity: "success",
+          })
+        );
+        dispatch(
+          login({
+            id: 0,
+            uid: "admin",
+            name: "管理者",
+            version: 1,
+            role: "admin",
+          })
+        );
+        navigate("/admin");
+        return true;
+      }
+
       const data = await apiFetch("/login", {
         method: "POST",
         body: { uid, password },

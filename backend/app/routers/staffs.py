@@ -14,7 +14,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # スタッフ作成
 class StaffCreate(BaseModel):
     name: str = Field(..., min_length=1)
-    staff_code: str = Field(..., min_length=1)
+    staff_code: Optional[str] = None                  # 任意
     login_id: str = Field(..., min_length=3)          # 必須
     password: str = Field(..., min_length=6)          # 必須（ハッシュ化保存）
     email: Optional[EmailStr] = None
@@ -39,12 +39,13 @@ class StaffResponse(BaseModel):
 # スタッフ更新
 class StaffUpdate(BaseModel):
     name: str = Field(..., min_length=1)
-    staff_code: str = Field(..., min_length=1)
+    staff_code: Optional[str] = None
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None
     job: Optional[str] = None
     is_active: bool = True
     is_admin: bool = False
+    password: Optional[str] = None  # 任意でパスワード更新
 
 # スタッフ削除
 class StaffDelete(BaseModel):
@@ -75,14 +76,15 @@ def get_staffs_by_office(office_id: int, db: Session = Depends(get_db)):
 )
 def create_staff(office_id: int, payload: StaffCreate, db: Session = Depends(get_db)):
     try:
-        # 職員コード重複チェック
-        exists_code = (
-            db.query(Staffs)
-            .filter(Staffs.office_id == office_id, Staffs.staff_code == payload.staff_code)
-            .first()
-        )
-        if exists_code:
-            raise HTTPException(status_code=409, detail="この職員コードは既に使用されています。")
+        # 職員コード重複チェック（入力がある場合のみ）
+        if payload.staff_code:
+            exists_code = (
+                db.query(Staffs)
+                .filter(Staffs.office_id == office_id, Staffs.staff_code == payload.staff_code)
+                .first()
+            )
+            if exists_code:
+                raise HTTPException(status_code=409, detail="この職員コードは既に使用されています。")
 
         # login_id 重複チェック（システム全体）
         exists_login = db.query(Staffs).filter(Staffs.login_id == payload.login_id).first()
@@ -136,17 +138,18 @@ def update_staff(office_id: int, staff_id: int, payload: StaffUpdate, db: Sessio
             raise HTTPException(status_code=404, detail="該当するスタッフが見つかりませんでした。")
 
         # 職員コード重複チェック（自分以外）
-        exists_code = (
-            db.query(Staffs)
-            .filter(
-                Staffs.office_id == office_id,
-                Staffs.staff_code == payload.staff_code,
-                Staffs.id != staff_id
+        if payload.staff_code:
+            exists_code = (
+                db.query(Staffs)
+                .filter(
+                    Staffs.office_id == office_id,
+                    Staffs.staff_code == payload.staff_code,
+                    Staffs.id != staff_id
+                )
+                .first()
             )
-            .first()
-        )
-        if exists_code:
-            raise HTTPException(status_code=409, detail="この職員コードは既に使用されています。")
+            if exists_code:
+                raise HTTPException(status_code=409, detail="この職員コードは既に使用されています。")
 
         # スタッフ情報を更新
         staff.name = payload.name
@@ -156,6 +159,9 @@ def update_staff(office_id: int, staff_id: int, payload: StaffUpdate, db: Sessio
         staff.job = payload.job
         staff.is_active = payload.is_active
         staff.is_admin = payload.is_admin
+        # パスワード更新（任意）
+        if payload.password:
+            staff.password = pwd_context.hash(payload.password)
 
         db.commit()
         db.refresh(staff)
