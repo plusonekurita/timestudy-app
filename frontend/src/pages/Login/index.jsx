@@ -115,6 +115,11 @@ const LoginPage = () => {
           role: "admin",
           version: 1,
         });
+        
+        // セッション開始時刻を保存
+        const { saveSessionStart } = await import("../../utils/sessionManager");
+        saveSessionStart();
+        
         dispatch(
           showSnackbar({
             message: "管理者としてログインしました",
@@ -170,6 +175,10 @@ const LoginPage = () => {
 
       // ローカルに保存
       setItem("user", user);
+
+      // セッション開始時刻を保存
+      const { saveSessionStart } = await import("../../utils/sessionManager");
+      saveSessionStart();
 
       dispatch(
         showSnackbar({

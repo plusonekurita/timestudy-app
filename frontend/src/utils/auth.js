@@ -3,6 +3,7 @@ import { websocketActionTypes } from "../store/middlewares/websocketActionTypes"
 import { logout } from "../store/slices/authSlice";
 import { resetTimeRecord } from "../store/slices/timeRecordSlice";
 import { removeItem } from "./localStorageUtils";
+import { clearSessionStart, broadcastLogout } from "./sessionManager";
 
 export const performLogout = (dispatch) => {
   // WebSocketの切断
@@ -13,6 +14,12 @@ export const performLogout = (dispatch) => {
 
   // timeRecordストアを初期化
   dispatch(resetTimeRecord());
+
+  // セッション情報をクリア
+  clearSessionStart();
+  
+  // 他のタブにログアウトを通知
+  broadcastLogout();
 
   // ローカルストレージから削除
   removeItem("user");

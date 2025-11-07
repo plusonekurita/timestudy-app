@@ -36,8 +36,17 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         staff.update_at = datetime.now(JST)
         db.commit()
 
+        # JWTトークンに有効期限（3時間）を設定
+        from datetime import timedelta
+        expires_delta = timedelta(hours=3)
+        exp = datetime.now(JST) + expires_delta
+        
         token = jwt.encode(
-            {"sub": staff.login_id, "role": "office"},
+            {
+                "sub": staff.login_id,
+                "role": "office",
+                "exp": exp.timestamp()  # 有効期限を追加
+            },
             SECRET_KEY,
             algorithm="HS256"
         )
@@ -104,7 +113,20 @@ async def admin_login(payload: AdminLoginRequest, request: Request):
         if payload.uid != "admin" or payload.password != "1964101001":
             raise ApiException(401, "認証エラー", "ログインIDまたはパスワードが無効です")
 
-        token = jwt.encode({"sub": "admin", "role": "admin"}, SECRET_KEY, algorithm="HS256")
+        # JWTトークンに有効期限（3時間）を設定
+        from datetime import timedelta
+        expires_delta = timedelta(hours=3)
+        exp = datetime.now(JST) + expires_delta
+        
+        token = jwt.encode(
+            {
+                "sub": "admin",
+                "role": "admin",
+                "exp": exp.timestamp()  # 有効期限を追加
+            },
+            SECRET_KEY,
+            algorithm="HS256"
+        )
 
         return {
             "access_token": token,
