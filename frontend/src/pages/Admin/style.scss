@@ -62,8 +62,8 @@
   cursor: pointer;
 }
 .theme-toggle:hover { background: rgba(255,255,255,.06); }
-.theme-light .theme-toggle { border-color:#cbd5e1; }
-.theme-light .theme-toggle:hover { background:#e5e7eb; }
+.admin-layout.theme-light .theme-toggle { border-color:#cbd5e1; }
+.admin-layout.theme-light .theme-toggle:hover { background:#e5e7eb; }
 
 // 977px未満はアプリ名を隠す
 @media (max-width: 977px) {
@@ -173,7 +173,8 @@
 
 .cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin-top: 12px; }
 .card { background:#141417; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:16px; }
-.card-title { color:#b9b9b9; font-size:12px; letter-spacing:.5px; }
+/* 管理画面内の.card-titleのみに適用（グローバルに影響しないように） */
+.admin-layout .card-title { color:#b9b9b9; font-size:12px; letter-spacing:.5px; }
 .card-value { font-size:28px; font-weight:700; margin-top:6px; }
 .increase-badge { color:#4ade80; font-size:16px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
 
@@ -279,43 +280,44 @@
 .preview-box { border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:10px; background:#0f0f12; }
 
 /* -------- Light Theme Overrides -------- */
-.theme-light .admin-layout { background:#f5f6f8; color:#111; }
-.theme-light .admin-sidebar { background:#ffffff; border-right:1px solid #e5e7eb; }
-.theme-light .sidebar-footer { background:#ffffff; border-top:1px solid #e5e7eb; }
-.theme-light .sidebar-header { color:#111; }
-.theme-light .nav-item { color:#111; }
-.theme-light .nav-item:hover { background: rgba(0,0,0,.06); }
-.theme-light .year-select { background:#ffffff; color:#111; border:1px solid #e5e7eb; }
-.theme-light .switch-btn { color:#111; border-color:#e5e7eb; }
-.theme-light .switch-btn.active { background:#e8eaf6; border-color:#c7cbe6; }
-.theme-light .card, .theme-light .chart-card, .theme-light .preview-card, .theme-light .modal { background:#ffffff; border:1px solid #e5e7eb; color:#111; }
-.theme-light .chart-title, .theme-light .card-title { color:#333; }
-.theme-light .office-form label { color:#222; }
-.theme-light .office-table th, .theme-light .office-table td { border-bottom:1px solid #e5e7eb; color:#111; }
-.theme-light .preview-box { background:#ffffff; border:1px solid #e5e7eb; }
-.theme-light .top-loader::before { box-shadow: 0 0 10px rgba(64,224,255,.45); }
-.theme-light .input-error { border-color:#ef4444 !important; }
-.theme-light .error-text { color:#ef4444; }
+/* .admin-layout要素自体にtheme-lightクラスを追加する方式に変更 */
+.admin-layout.theme-light { background:#f5f6f8; color:#111; }
+.admin-layout.theme-light .admin-sidebar { background:#ffffff; border-right:1px solid #e5e7eb; }
+.admin-layout.theme-light .sidebar-footer { background:#ffffff; border-top:1px solid #e5e7eb; }
+.admin-layout.theme-light .sidebar-header { color:#111; }
+.admin-layout.theme-light .nav-item { color:#111; }
+.admin-layout.theme-light .nav-item:hover { background: rgba(0,0,0,.06); }
+.admin-layout.theme-light .year-select { background:#ffffff; color:#111; border:1px solid #e5e7eb; }
+.admin-layout.theme-light .switch-btn { color:#111; border-color:#e5e7eb; }
+.admin-layout.theme-light .switch-btn.active { background:#e8eaf6; border-color:#c7cbe6; }
+.admin-layout.theme-light .card, .admin-layout.theme-light .chart-card, .admin-layout.theme-light .preview-card, .admin-layout.theme-light .modal { background:#ffffff; border:1px solid #e5e7eb; color:#111; }
+.admin-layout.theme-light .chart-title, .admin-layout.theme-light .card-title { color:#333; }
+.admin-layout.theme-light .office-form label { color:#222; }
+.admin-layout.theme-light .office-table th, .admin-layout.theme-light .office-table td { border-bottom:1px solid #e5e7eb; color:#111; }
+.admin-layout.theme-light .preview-box { background:#ffffff; border:1px solid #e5e7eb; }
+.admin-layout.theme-light .top-loader::before { box-shadow: 0 0 10px rgba(64,224,255,.45); }
+.admin-layout.theme-light .input-error { border-color:#ef4444 !important; }
+.admin-layout.theme-light .error-text { color:#ef4444; }
 /* Light theme tabs */
-.theme-light .tab-btn { background:#f3f4f6; color:#374151; border-color:#cbd5e1; }
-.theme-light .tab-btn:hover { background:#e5e7eb; }
-.theme-light .tab-btn.active { background:#111; color:#fff; border-color:#111; }
+.admin-layout.theme-light .tab-btn { background:#f3f4f6; color:#374151; border-color:#cbd5e1; }
+.admin-layout.theme-light .tab-btn:hover { background:#e5e7eb; }
+.admin-layout.theme-light .tab-btn.active { background:#111; color:#fff; border-color:#111; }
 /* Light theme: inputs readable */
-.theme-light .office-form input[type="text"],
-.theme-light .office-form input[type="email"],
-.theme-light .office-form input[type="password"] {
+.admin-layout.theme-light .office-form input[type="text"],
+.admin-layout.theme-light .office-form input[type="email"],
+.admin-layout.theme-light .office-form input[type="password"] {
   background:#ffffff;
   color:#111;
   border:2px solid #cbd5e1; /* slate-300 */
 }
-.theme-light .office-form input[type="text"]:focus,
-.theme-light .office-form input[type="email"]:focus,
-.theme-light .office-form input[type="password"]:focus {
+.admin-layout.theme-light .office-form input[type="text"]:focus,
+.admin-layout.theme-light .office-form input[type="email"]:focus,
+.admin-layout.theme-light .office-form input[type="password"]:focus {
   border-color:#7f82ff;
   box-shadow: 0 0 0 2px rgba(127,130,255,.25);
 }
-.theme-light .year-select { border:2px solid #cbd5e1; }
+.admin-layout.theme-light .year-select { border:2px solid #cbd5e1; }
 .year-select:focus { outline:none; }
-.theme-light .office-form input::placeholder { color:#9aa0a6; }
+.admin-layout.theme-light .office-form input::placeholder { color:#9aa0a6; }
 
 

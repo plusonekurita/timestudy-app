@@ -34,6 +34,7 @@ const TopMenuDesktop = () => {
                   variant="h5"
                   className="content__header"
                   gutterBottom
+                  sx={{ color: '#000000' }}
                 >
                   {section.label}
                 </Typography>
@@ -61,7 +62,11 @@ const TopMenuDesktop = () => {
     );
   };
 
-  return <div className="p-8">{renderContent()}</div>;
+  return (
+    <div className="p-8" style={{ color: '#000000' }}>
+      {renderContent()}
+    </div>
+  );
 };
 
 export default TopMenuDesktop;

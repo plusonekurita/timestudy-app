@@ -21,10 +21,24 @@ const StaffsPage = () => {
     typeof window !== "undefined" ? localStorage.getItem("theme") || "dark" : "dark"
   );
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "light") root.classList.add("theme-light");
-    else root.classList.remove("theme-light");
+    // 管理画面のコンテナにのみテーマを適用（グローバルに影響しないように）
+    const adminLayout = document.querySelector(".admin-layout");
+    if (adminLayout) {
+      if (theme === "light") {
+        adminLayout.classList.add("theme-light");
+      } else {
+        adminLayout.classList.remove("theme-light");
+      }
+    }
     localStorage.setItem("theme", theme);
+    
+    // クリーンアップ：コンポーネントがアンマウントされる際にテーマクラスを削除
+    return () => {
+      const adminLayout = document.querySelector(".admin-layout");
+      if (adminLayout) {
+        adminLayout.classList.remove("theme-light");
+      }
+    };
   }, [theme]);
   const [showEdit, setShowEdit] = useState(false);
   const [edit, setEdit] = useState(null);

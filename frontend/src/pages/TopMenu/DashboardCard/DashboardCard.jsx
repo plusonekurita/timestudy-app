@@ -7,7 +7,7 @@ export const DashboardCard = ({ title, icon: Icon, onClick }) => {
         <div className="card-icon">
           <Icon />
         </div>
-        <h3 className="card-title">{title}</h3>
+        <h3 className="card-title" style={{ color: '#000000' }}>{title}</h3>
       </div>
     </div>
   );

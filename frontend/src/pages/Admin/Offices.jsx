@@ -32,13 +32,29 @@ const OfficesPage = () => {
   });
   const [nameError, setNameError] = useState("");
   const [theme, setTheme] = useState(
-    typeof window !== "undefined" ? localStorage.getItem("theme") || "dark" : "dark"
+    typeof window !== "undefined"
+      ? localStorage.getItem("theme") || "dark"
+      : "dark"
   );
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "light") root.classList.add("theme-light");
-    else root.classList.remove("theme-light");
+    // 管理画面のコンテナにのみテーマを適用（グローバルに影響しないように）
+    const adminLayout = document.querySelector(".admin-layout");
+    if (adminLayout) {
+      if (theme === "light") {
+        adminLayout.classList.add("theme-light");
+      } else {
+        adminLayout.classList.remove("theme-light");
+      }
+    }
     localStorage.setItem("theme", theme);
+
+    // クリーンアップ：コンポーネントがアンマウントされる際にテーマクラスを削除
+    return () => {
+      const adminLayout = document.querySelector(".admin-layout");
+      if (adminLayout) {
+        adminLayout.classList.remove("theme-light");
+      }
+    };
   }, [theme]);
   const [addManager, setAddManager] = useState(false);
   const [staffForm, setStaffForm] = useState({
@@ -199,8 +215,15 @@ const OfficesPage = () => {
         <div className="sidebar-header" style={{ gap: 8 }}>
           <div className="app-logo">P</div>
           <span className="app-name">プラスワン</span>
-          <button className="theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
-            {theme === "light" ? <DarkMode fontSize="small" /> : <LightMode fontSize="small" />}
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          >
+            {theme === "light" ? (
+              <DarkMode fontSize="small" />
+            ) : (
+              <LightMode fontSize="small" />
+            )}
           </button>
         </div>
         <nav className="sidebar-nav">
