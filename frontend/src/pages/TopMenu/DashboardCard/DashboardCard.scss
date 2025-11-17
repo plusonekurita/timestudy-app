@@ -10,6 +10,15 @@
   &:hover {
     transform: scale(1.02);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    
+    // ホバー時のみ青い背景に白いアイコン
+    .card-icon {
+      background-color: rgb(51, 124, 219) !important;
+    }
+    
+    .card-icon svg {
+      color: #ffffff !important;
+    }
   }
 
   &:active {
@@ -28,13 +37,15 @@
 
   .card-icon {
     padding: 0.75rem;
-    background-color: #f3f4f6 !important; // CSS変数を使わず直接指定
+    background-color: #f3f4f6 !important; // 通常時はグレー
     border-radius: 9999px;
+    transition: background-color 0.2s ease; // 背景色変更のトランジション
 
     svg {
       height: 2rem;
       width: 2rem;
-      color: #6b7280 !important; // CSS変数を使わず直接指定（グレー）
+      color: #6b7280 !important; // 通常時はグレー
+      transition: color 0.2s ease; // 色変更のトランジション
     }
   }
 

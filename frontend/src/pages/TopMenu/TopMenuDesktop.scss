@@ -23,9 +23,14 @@
           align-items: center;
           margin-bottom: 6px;
           padding: 0.75rem;
-          color: rgb(93, 93, 93) !important;
-          background-color: rgb(228, 228, 228) !important;
+          background-color: rgb(228, 228, 228) !important; // 通常時はグレー
           border-radius: 9999px;
+          transition: background-color 0.2s ease; // 背景色変更のトランジション
+          
+          svg {
+            color: rgb(93, 93, 93) !important; // 通常時はグレー
+            transition: color 0.2s ease; // 色変更のトランジション
+          }
         }
         .card-title,
         h3.card-title,
@@ -33,6 +38,17 @@
           margin: 0;
           // テキストを黒色に固定（管理画面のテーマに影響されないように）
           color: #000000 !important;
+        }
+      }
+      
+      // ホバー時のみ青い背景に白いアイコン
+      &:hover {
+        .card-content .card-icon {
+          background-color: rgb(51, 124, 219) !important;
+          
+          svg {
+            color: #ffffff !important;
+          }
         }
       }
     }
