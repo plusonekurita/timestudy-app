@@ -231,9 +231,9 @@ export const menuCategories = [
     ],
   },
   {
-    type: "break",
-    label: "休憩",
-    color: colors.break,
+    type: "other",
+    label: "その他",
+    color: colors.other,
     items: [
       {
         no: 22,
@@ -244,13 +244,6 @@ export const menuCategories = [
         color: colors.break,
         graphColor: graphColors.items.break,
       },
-    ],
-  },
-  {
-    type: "other",
-    label: "その他",
-    color: colors.other,
-    items: [
       {
         no: 23,
         type: "other",
@@ -266,7 +259,7 @@ export const menuCategories = [
         label: "余裕時間",
         name: "bufferTime",
         icon: <img src={customIcons.yoyuu} alt="余裕時間" />,
-        color: colors.other,
+        color: "#4DD0E1", // 水色
         graphColor: graphColors.items.bufferTime,
       },
     ],

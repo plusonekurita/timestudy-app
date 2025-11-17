@@ -21,11 +21,10 @@ import React, { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 import ZeroHidingTooltip from "./ZeroHidingTooltip";
-// 業務タイプ定義（固定4種）
+// 業務タイプ定義（3種：breakはotherに統合）
 const TYPE_KEYS = Object.freeze([
   "directCare",
   "indirectWork",
-  "break",
   "other",
 ]);
 
@@ -65,10 +64,6 @@ export default function StaffTypeMix100Chart() {
         label: "間接業務",
         color: theme.palette.success.main,
       },
-      break: metaFromMenu.break || {
-        label: "休憩・待機・仮眠",
-        color: theme.palette.warning.main,
-      },
       other: metaFromMenu.other || {
         label: "その他",
         color: "#9e9e9e",
@@ -102,12 +97,14 @@ export default function StaffTypeMix100Chart() {
       const recs = isOffice ? groupedByStaff[String(sid)] || [] : record || [];
 
       // タイプ別合計（分）
-      const mins = { directCare: 0, indirectWork: 0, break: 0, other: 0 };
+      const mins = { directCare: 0, indirectWork: 0, other: 0 };
       let totalMin = 0;
 
       recs.forEach((r) => {
         (Array.isArray(r.record) ? r.record : []).forEach((it) => {
-          const key = TYPE_KEYS.includes(it?.type) ? it.type : "other";
+          // breakをotherに統合
+          const type = it?.type === "break" ? "other" : it?.type;
+          const key = TYPE_KEYS.includes(type) ? type : "other";
           const sec =
             typeof it?.duration === "number"
               ? it.duration

@@ -2,8 +2,9 @@ from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 from app.models.offices import Offices
 from app.models.staffs import Staffs
+from app.models.time_record import TimeRecord
 from app.db.database import SessionLocal
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 
 JST = timezone(timedelta(hours=9))
 
@@ -55,5 +56,64 @@ def create_initial_users_and_offices():
                 db.add(staff2)
                 db.commit()
         print("✅ テストデータを登録しました")
+    finally:
+        db.close()
+
+
+def create_night_shift_record():
+    """夜勤のデモレコードを作成（23時～5時の記録が2時間以上）"""
+    db: Session = SessionLocal()
+    try:
+        # 職員を取得（最初の職員を使用）
+        staff = db.query(Staffs).first()
+        if not staff:
+            print("❌ 職員が見つかりません。先に職員を作成してください。")
+            return
+
+        # 今日の日付を使用
+        today = date.today()
+
+        # 既に同じ日付のレコードがあるか確認
+        existing = db.query(TimeRecord).filter_by(
+            staff_id=staff.id,
+            record_date=today
+        ).first()
+
+        if existing:
+            print(f"⚠️ {today} のレコードは既に存在します。スキップします。")
+            return
+
+        # 夜勤レコードを作成（23:00～01:00の2時間）
+        # 23:00～01:00の記録（2時間 = 120分）
+        night_shift_records = [
+            {
+                "id": "night-1",
+                "no": 1,
+                "type": "indirectWork",
+                "name": "monitoringDevice",
+                "label": "見守り機器の使用・確認",
+                "startTime": f"{today}T23:00:00+09:00",
+                "endTime": f"{today}T01:00:00+09:00",
+                "duration": 7200  # 2時間 = 7200秒
+            }
+        ]
+
+        # 日付をまたぐ場合、endTimeは翌日の日付にする必要がある
+        next_day = today + timedelta(days=1)
+        night_shift_records[0]["endTime"] = f"{next_day}T01:00:00+09:00"
+
+        new_record = TimeRecord(
+            staff_id=staff.id,
+            record_date=today,
+            record=night_shift_records
+        )
+        db.add(new_record)
+        db.commit()
+        db.refresh(new_record)
+        print(f"✅ 夜勤レコードを作成しました（ID: {new_record.id}, 日付: {today}, 職員: {staff.name}）")
+        print(f"   記録: 23:00～01:00（2時間）")
+    except Exception as e:
+        print(f"❌ 夜勤レコード作成エラー: {str(e)}")
+        db.rollback()
     finally:
         db.close()

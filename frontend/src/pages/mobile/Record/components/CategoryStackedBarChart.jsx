@@ -17,7 +17,6 @@ const CategoryStackedBarChart = ({ chartData }) => {
         <YAxis dataKey="name" type="category" hide />
         <Bar dataKey="directCare" stackId="a" fill={colors.directCare} />
         <Bar dataKey="indirectWork" stackId="a" fill={colors.indirectWork} />
-        <Bar dataKey="break" stackId="a" fill={colors.break} />
         <Bar dataKey="other" stackId="a" fill={colors.other} />
       </BarChart>
     </ResponsiveContainer>
