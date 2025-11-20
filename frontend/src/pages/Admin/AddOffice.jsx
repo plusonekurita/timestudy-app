@@ -15,13 +15,17 @@ const AddOfficePage = () => {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: "",
+    jigyousyo_no: "",
+    postal_code: "",
     address: "",
     phone_number: "",
     email: "",
     is_active: true,
   });
   const [nameError, setNameError] = useState("");
+  const [jigyousyoNoError, setJigyousyoNoError] = useState("");
   const [knownOffices, setKnownOffices] = useState([]);
+  const [searchingAddress, setSearchingAddress] = useState(false);
 
   React.useEffect(() => {
     // 既存の事業所一覧をローカルから読み込み（なければAPI）
@@ -50,6 +54,23 @@ const AddOfficePage = () => {
     } else {
       setNameError("");
     }
+    // 事業所番号のバリデーション
+    const jigyousyoNo = form.jigyousyo_no.trim();
+    if (!jigyousyoNo) {
+      setJigyousyoNoError("事業所番号を入力してください");
+      dispatch(
+        showSnackbar({ message: "事業所番号を入力してください", severity: "warning" })
+      );
+      return;
+    }
+    if (!/^\d{10}$/.test(jigyousyoNo)) {
+      setJigyousyoNoError("半角数字10桁で入力してください");
+      dispatch(
+        showSnackbar({ message: "事業所番号は半角数字10桁で入力してください", severity: "warning" })
+      );
+      return;
+    }
+    setJigyousyoNoError("");
     try {
       setLoading(true);
       await apiFetch("/offices", { method: "POST", body: form });
@@ -72,6 +93,46 @@ const AddOfficePage = () => {
   const handleLogout = () => {
     performLogout(dispatch);
     navigate("/login");
+  };
+
+  const handleSearchAddress = async () => {
+    const postalCode = form.postal_code.trim();
+    if (!postalCode || postalCode.length !== 7) {
+      dispatch(
+        showSnackbar({ message: "郵便番号を7桁で入力してください", severity: "warning" })
+      );
+      return;
+    }
+
+    try {
+      setSearchingAddress(true);
+      const response = await fetch(
+        `https://zipcloud.ibsnet.co.jp/api/search?zipcode=${postalCode}`
+      );
+      const data = await response.json();
+
+      if (data.status === 200 && data.results && data.results.length > 0) {
+        const result = data.results[0];
+        const address = `${result.address1}${result.address2}${result.address3 || ""}`;
+        setForm({ ...form, address: address });
+        dispatch(
+          showSnackbar({ message: "住所を取得しました", severity: "success" })
+        );
+      } else {
+        dispatch(
+          showSnackbar({ message: "住所が見つかりませんでした", severity: "warning" })
+        );
+      }
+    } catch (err) {
+      dispatch(
+        showSnackbar({
+          message: "住所検索に失敗しました",
+          severity: "error",
+        })
+      );
+    } finally {
+      setSearchingAddress(false);
+    }
   };
 
   const [theme, setTheme] = useState(
@@ -152,6 +213,51 @@ const AddOfficePage = () => {
                 className={nameError ? "input-error" : undefined}
               />
               {nameError && <span className="error-text">{nameError}</span>}
+            </label>
+            <label>
+              事業所番号（必須）
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={10}
+                value={form.jigyousyo_no}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 10);
+                  setForm({ ...form, jigyousyo_no: value });
+                  if (jigyousyoNoError) setJigyousyoNoError("");
+                }}
+                required
+                className={jigyousyoNoError ? "input-error" : undefined}
+              />
+              {jigyousyoNoError && <span className="error-text">{jigyousyoNoError}</span>}
+            </label>
+            <label>
+              郵便番号（半角数字のみ・ハイフン不要）
+              <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={7}
+                  value={form.postal_code}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 7);
+                    setForm({ ...form, postal_code: value });
+                  }}
+                  placeholder="1234567"
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={handleSearchAddress}
+                  disabled={searchingAddress || form.postal_code.length !== 7}
+                  className="switch-btn"
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  {searchingAddress ? "検索中..." : "住所検索"}
+                </button>
+              </div>
             </label>
             <label>
               住所

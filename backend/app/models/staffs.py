@@ -17,7 +17,7 @@ class Staffs(Base):
     login_id: Mapped[str] = mapped_column(String(50), unique=True)     # ログインID（重複不可）
     password: Mapped[str] = mapped_column(String(255))                 # パスワード（ハッシュ化前提）
     name: Mapped[str] = mapped_column(String(100))
-    staff_code: Mapped[str] = mapped_column(String(50))
+    staff_code: Mapped[str] = mapped_column(String(50), nullable=True)  # 職員コード（任意）
     job: Mapped[str] = mapped_column(String(50), nullable=True)  # 職種
     email: Mapped[str] = mapped_column(String(100), nullable=True)     # メールアドレス（null可）
     phone_number: Mapped[str] = mapped_column(String(20), nullable=True)  # 電話番号（null可）

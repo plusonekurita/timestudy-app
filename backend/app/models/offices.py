@@ -12,6 +12,8 @@ class Offices(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))  # 事業所名
+    jigyousyo_no: Mapped[str] = mapped_column(String(10), nullable=True)  # 事業所番号（10桁まで）
+    postal_code: Mapped[str] = mapped_column(String(10), nullable=True)  # 郵便番号
     address: Mapped[str] = mapped_column(Text, nullable=True)
     phone_number: Mapped[str] = mapped_column(String(20), nullable=True)
     email: Mapped[str] = mapped_column(String(100), nullable=True)

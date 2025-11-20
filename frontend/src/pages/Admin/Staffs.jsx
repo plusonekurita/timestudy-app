@@ -82,10 +82,11 @@ const StaffsPage = () => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    const alnum8 = /^[A-Za-z0-9]{8,}$/;
+    const alnum6 = /^[A-Za-z0-9]{6,}$/; // ログインID用
+    const alnum8 = /^[A-Za-z0-9]{8,}$/; // パスワード用
     if (!form.office_id) { dispatch(showSnackbar({ message: "事業所を選択してください", severity: "warning" })); return; }
-    if (!alnum8.test(form.login_id || "") || !alnum8.test(form.password || "") || !String(form.name || "").trim()) {
-      dispatch(showSnackbar({ message: "必須項目を正しく入力してください（半角英数8文字以上など）", severity: "warning" }));
+    if (!alnum6.test(form.login_id || "") || !alnum8.test(form.password || "") || !String(form.name || "").trim()) {
+      dispatch(showSnackbar({ message: "必須項目を正しく入力してください（ログインID: 半角英数6文字以上、パスワード: 半角英数8文字以上）", severity: "warning" }));
       return;
     }
     try {
@@ -111,9 +112,15 @@ const StaffsPage = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!edit?.id || !selectedOfficeId) return;
-    const alnum8 = /^[A-Za-z0-9]{8,}$/;
-    if (!alnum8.test(edit.login_id || "") || !String(edit.name || "").trim()) {
+    const alnum6 = /^[A-Za-z0-9]{6,}$/; // ログインID用
+    const alnum8 = /^[A-Za-z0-9]{8,}$/; // パスワード用（変更時のみ）
+    if (!alnum6.test(edit.login_id || "") || !String(edit.name || "").trim()) {
       dispatch(showSnackbar({ message: "必須項目を正しく入力してください", severity: "warning" }));
+      return;
+    }
+    // パスワードが入力されている場合は8文字以上をチェック
+    if (edit.password && !alnum8.test(edit.password)) {
+      dispatch(showSnackbar({ message: "パスワードは半角英数8文字以上で入力してください", severity: "warning" }));
       return;
     }
     try {
@@ -199,7 +206,7 @@ const StaffsPage = () => {
               <div className="staff-grid">
                 <label>
                   ログインID（必須）
-                  <input type="text" placeholder="半角英数8文字以上" pattern="[A-Za-z0-9]{8,}" minLength={8} required value={form.login_id} onChange={(e)=>setForm({ ...form, login_id: e.target.value })} />
+                  <input type="text" placeholder="半角英数6文字以上" pattern="[A-Za-z0-9]{6,}" minLength={6} required value={form.login_id} onChange={(e)=>setForm({ ...form, login_id: e.target.value })} />
                 </label>
                 <label>
                   パスワード（必須）

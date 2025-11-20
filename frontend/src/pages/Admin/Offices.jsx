@@ -13,6 +13,8 @@ import {
   AddBusiness,
   LightMode,
   DarkMode,
+  Visibility,
+  VisibilityOff,
 } from "@mui/icons-material";
 import "./style.scss";
 
@@ -25,12 +27,17 @@ const OfficesPage = () => {
   const [showLoader, setShowLoader] = useState(false);
   const [form, setForm] = useState({
     name: "",
+    jigyousyo_no: "",
+    postal_code: "",
     address: "",
     phone_number: "",
     email: "",
     is_active: true,
   });
   const [nameError, setNameError] = useState("");
+  const [jigyousyoNoError, setJigyousyoNoError] = useState("");
+  const [searchingAddress, setSearchingAddress] = useState(false);
+  const [searchingAddressEdit, setSearchingAddressEdit] = useState(false);
   const [theme, setTheme] = useState(
     typeof window !== "undefined"
       ? localStorage.getItem("theme") || "dark"
@@ -57,6 +64,7 @@ const OfficesPage = () => {
     };
   }, [theme]);
   const [addManager, setAddManager] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [staffForm, setStaffForm] = useState({
     login_id: "",
     password: "",
@@ -92,17 +100,84 @@ const OfficesPage = () => {
     navigate("/login");
   };
 
+  const handleSearchAddress = async (postalCode, isEdit = false) => {
+    if (!postalCode || postalCode.length !== 7) {
+      dispatch(
+        showSnackbar({ message: "郵便番号を7桁で入力してください", severity: "warning" })
+      );
+      return;
+    }
+
+    try {
+      if (isEdit) {
+        setSearchingAddressEdit(true);
+      } else {
+        setSearchingAddress(true);
+      }
+      const response = await fetch(
+        `https://zipcloud.ibsnet.co.jp/api/search?zipcode=${postalCode}`
+      );
+      const data = await response.json();
+
+      if (data.status === 200 && data.results && data.results.length > 0) {
+        const result = data.results[0];
+        const address = `${result.address1}${result.address2}${result.address3 || ""}`;
+        if (isEdit) {
+          setEdit({ ...edit, address: address });
+        } else {
+          setForm({ ...form, address: address });
+        }
+        dispatch(
+          showSnackbar({ message: "住所を取得しました", severity: "success" })
+        );
+      } else {
+        dispatch(
+          showSnackbar({ message: "住所が見つかりませんでした", severity: "warning" })
+        );
+      }
+    } catch (err) {
+      dispatch(
+        showSnackbar({
+          message: "住所検索に失敗しました",
+          severity: "error",
+        })
+      );
+    } finally {
+      if (isEdit) {
+        setSearchingAddressEdit(false);
+      } else {
+        setSearchingAddress(false);
+      }
+    }
+  };
+
   const [showModal, setShowModal] = useState(false);
   const [edit, setEdit] = useState(null);
 
   const handleUpdate = async () => {
     if (!edit?.id || !String(edit.name || "").trim()) return;
+    // 事業所番号のバリデーション
+    const jigyousyoNo = String(edit.jigyousyo_no || "").trim();
+    if (!jigyousyoNo) {
+      dispatch(
+        showSnackbar({ message: "事業所番号を入力してください", severity: "warning" })
+      );
+      return;
+    }
+    if (!/^\d{10}$/.test(jigyousyoNo)) {
+      dispatch(
+        showSnackbar({ message: "事業所番号は半角数字10桁で入力してください", severity: "warning" })
+      );
+      return;
+    }
     try {
       setLoading(true);
       await apiFetch(`/offices/${edit.id}`, {
         method: "PUT",
         body: {
           name: edit.name,
+          jigyousyo_no: edit.jigyousyo_no,
+          postal_code: edit.postal_code,
           address: edit.address,
           phone_number: edit.phone_number,
           email: edit.email,
@@ -141,19 +216,36 @@ const OfficesPage = () => {
       return;
     }
     setNameError("");
+    // 事業所番号のバリデーション
+    const jigyousyoNo = form.jigyousyo_no.trim();
+    if (!jigyousyoNo) {
+      setJigyousyoNoError("事業所番号を入力してください");
+      dispatch(
+        showSnackbar({ message: "事業所番号を入力してください", severity: "warning" })
+      );
+      return;
+    }
+    if (!/^\d{10}$/.test(jigyousyoNo)) {
+      setJigyousyoNoError("半角数字10桁で入力してください");
+      dispatch(
+        showSnackbar({ message: "事業所番号は半角数字10桁で入力してください", severity: "warning" })
+      );
+      return;
+    }
+    setJigyousyoNoError("");
     // 管理スタッフ同時登録時の厳格バリデーション
     if (addManager) {
-      const alnum8 = /^[A-Za-z0-9]{8,}$/;
+      const alnum6 = /^[A-Za-z0-9]{6,}$/; // ログインID用
+      const alnum8 = /^[A-Za-z0-9]{8,}$/; // パスワード用
       if (
-        !alnum8.test(staffForm.login_id || "") ||
+        !alnum6.test(staffForm.login_id || "") ||
         !alnum8.test(staffForm.password || "") ||
-        !String(staffForm.name || "").trim() ||
-        !String(staffForm.staff_code || "").trim()
+        !String(staffForm.name || "").trim()
       ) {
         dispatch(
           showSnackbar({
             message:
-              "管理スタッフの必須項目を正しく入力してください（半角英数8文字以上など）",
+              "管理スタッフの必須項目を正しく入力してください（ログインID: 半角英数6文字以上、パスワード: 半角英数8文字以上）",
             severity: "warning",
           })
         );
@@ -162,26 +254,35 @@ const OfficesPage = () => {
     }
     try {
       setLoading(true);
-      const office = await apiFetch("/offices", { method: "POST", body: form });
-      if (addManager && office?.id) {
-        await apiFetch(`/offices/${office.id}/staffs`, {
+      let office;
+      if (addManager) {
+        // スタッフも同時登録する場合は、新しいエンドポイントを使用（トランザクション処理）
+        office = await apiFetch("/offices/with-staff", {
           method: "POST",
           body: {
-            name: staffForm.name,
-            staff_code: staffForm.staff_code || undefined,
-            login_id: staffForm.login_id,
-            password: staffForm.password,
-            job: staffForm.job || undefined,
-            is_active: true,
-            is_admin: true,
+            ...form,
+            staff: {
+              name: staffForm.name,
+              staff_code: staffForm.staff_code || undefined,
+              login_id: staffForm.login_id,
+              password: staffForm.password,
+              job: staffForm.job || undefined,
+              is_active: true,
+              is_admin: true,
+            },
           },
         });
+      } else {
+        // スタッフを登録しない場合は従来のエンドポイントを使用
+        office = await apiFetch("/offices", { method: "POST", body: form });
       }
       dispatch(
         showSnackbar({ message: "事業所を登録しました", severity: "success" })
       );
       setForm({
         name: "",
+        jigyousyo_no: "",
+        postal_code: "",
         address: "",
         phone_number: "",
         email: "",
@@ -300,6 +401,51 @@ const OfficesPage = () => {
                   {nameError && <span className="error-text">{nameError}</span>}
                 </label>
                 <label>
+                  事業所番号（必須）
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={10}
+                    value={form.jigyousyo_no}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 10);
+                      setForm({ ...form, jigyousyo_no: value });
+                      if (jigyousyoNoError) setJigyousyoNoError("");
+                    }}
+                    required
+                    className={jigyousyoNoError ? "input-error" : undefined}
+                  />
+                  {jigyousyoNoError && <span className="error-text">{jigyousyoNoError}</span>}
+                </label>
+                <label>
+                  郵便番号（半角数字のみ・ハイフン不要）
+                  <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={7}
+                      value={form.postal_code}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 7);
+                        setForm({ ...form, postal_code: value });
+                      }}
+                      placeholder="1234567"
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSearchAddress(form.postal_code, false)}
+                      disabled={searchingAddress || form.postal_code.length !== 7}
+                      className="switch-btn"
+                      style={{ whiteSpace: "nowrap" }}
+                    >
+                      {searchingAddress ? "検索中..." : "住所検索"}
+                    </button>
+                  </div>
+                </label>
+                <label>
                   住所
                   <input
                     type="text"
@@ -361,10 +507,10 @@ const OfficesPage = () => {
                         ログインID（必須）
                         <input
                           type="text"
-                          placeholder="半角英数8文字以上"
+                          placeholder="半角英数6文字以上"
                           inputMode="text"
-                          pattern="[A-Za-z0-9]{8,}"
-                          minLength={8}
+                          pattern="[A-Za-z0-9]{6,}"
+                          minLength={6}
                           required={addManager}
                           value={staffForm.login_id}
                           onChange={(e) =>
@@ -377,21 +523,46 @@ const OfficesPage = () => {
                       </label>
                       <label>
                         パスワード（必須）
-                        <input
-                          type="password"
-                          placeholder="半角英数8文字以上"
-                          autoComplete="new-password"
-                          pattern="[A-Za-z0-9]{8,}"
-                          minLength={8}
-                          required={addManager}
-                          value={staffForm.password}
-                          onChange={(e) =>
-                            setStaffForm({
-                              ...staffForm,
-                              password: e.target.value,
-                            })
-                          }
-                        />
+                        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="半角英数8文字以上"
+                            autoComplete="new-password"
+                            pattern="[A-Za-z0-9]{8,}"
+                            minLength={8}
+                            required={addManager}
+                            value={staffForm.password}
+                            onChange={(e) =>
+                              setStaffForm({
+                                ...staffForm,
+                                password: e.target.value,
+                              })
+                            }
+                            style={{ flex: 1, paddingRight: "40px" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                              position: "absolute",
+                              right: "8px",
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              color: "inherit",
+                            }}
+                            aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+                          >
+                            {showPassword ? (
+                              <VisibilityOff fontSize="small" />
+                            ) : (
+                              <Visibility fontSize="small" />
+                            )}
+                          </button>
+                        </div>
                       </label>
                       <label>
                         氏名（必須）
@@ -405,7 +576,7 @@ const OfficesPage = () => {
                         />
                       </label>
                       <label>
-                        職員コード（必須）
+                        職員コード
                         <input
                           type="text"
                           value={staffForm.staff_code}
@@ -441,15 +612,19 @@ const OfficesPage = () => {
                   <button
                     type="button"
                     className="switch-btn"
-                    onClick={() =>
+                    onClick={() => {
                       setForm({
                         name: "",
+                        jigyousyo_no: "",
+                        postal_code: "",
                         address: "",
                         phone_number: "",
                         email: "",
                         is_active: true,
-                      })
-                    }
+                      });
+                      setNameError("");
+                      setJigyousyoNoError("");
+                    }}
                   >
                     クリア
                   </button>
@@ -475,6 +650,12 @@ const OfficesPage = () => {
               <div className="preview-box">
                 <div>
                   <strong>名称:</strong> {form.name || "-"}
+                </div>
+                <div>
+                  <strong>事業所番号:</strong> {form.jigyousyo_no || "-"}
+                </div>
+                <div>
+                  <strong>郵便番号:</strong> {form.postal_code || "-"}
                 </div>
                 <div>
                   <strong>住所:</strong> {form.address || "-"}
@@ -503,6 +684,8 @@ const OfficesPage = () => {
                     <tr>
                       <th>ID</th>
                       <th>名称</th>
+                      <th>事業所番号</th>
+                      <th>郵便番号</th>
                       <th>住所</th>
                       <th>電話</th>
                       <th>メール</th>
@@ -521,6 +704,8 @@ const OfficesPage = () => {
                       >
                         <td>{o.id}</td>
                         <td>{o.name}</td>
+                        <td>{o.jigyousyo_no || "-"}</td>
+                        <td>{o.postal_code || "-"}</td>
                         <td>{o.address || "-"}</td>
                         <td>{o.phone_number || "-"}</td>
                         <td>{o.email || "-"}</td>
@@ -567,6 +752,48 @@ const OfficesPage = () => {
                     onChange={(e) => setEdit({ ...edit, name: e.target.value })}
                     required
                   />
+                </label>
+                <label>
+                  事業所番号（必須）
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={10}
+                    value={edit.jigyousyo_no || ""}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 10);
+                      setEdit({ ...edit, jigyousyo_no: value });
+                    }}
+                    required
+                  />
+                </label>
+                <label>
+                  郵便番号（半角数字のみ・ハイフン不要）
+                  <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={7}
+                      value={edit.postal_code || ""}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 7);
+                        setEdit({ ...edit, postal_code: value });
+                      }}
+                      placeholder="1234567"
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSearchAddress(edit.postal_code || "", true)}
+                      disabled={searchingAddressEdit || !edit.postal_code || edit.postal_code.length !== 7}
+                      className="switch-btn"
+                      style={{ whiteSpace: "nowrap" }}
+                    >
+                      {searchingAddressEdit ? "検索中..." : "住所検索"}
+                    </button>
+                  </div>
                 </label>
                 <label>
                   住所

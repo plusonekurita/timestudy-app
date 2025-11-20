@@ -30,7 +30,8 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
     );
 
   // ルール
-  const reAlnum8 = /^[A-Za-z0-9]{8,}$/; // 半角英数字のみ・8文字以上
+  const reAlnum6 = /^[A-Za-z0-9]{6,}$/; // 半角英数字のみ・6文字以上（ログインID用）
+  const reAlnum8 = /^[A-Za-z0-9]{8,}$/; // 半角英数字のみ・8文字以上（パスワード用）
   const reDigits = /^[0-9]+$/; // 半角数字のみ
 
   const [values, setValues] = useState({
@@ -63,15 +64,14 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
   const validateField = (key, v) => {
     if (key === "login_id") {
       if (!v) return "必須項目です";
-      if (!reAlnum8.test(v)) return "半角英数字8文字以上で入力してください";
+      if (!reAlnum6.test(v)) return "半角英数字6文字以上で入力してください";
     }
     if (key === "password") {
       if (!v) return "必須項目です";
       if (!reAlnum8.test(v)) return "半角英数字8文字以上で入力してください";
     }
     if (key === "staff_code") {
-      if (!v) return "必須項目です";
-      if (!reDigits.test(v)) return "半角数字のみで入力してください";
+      if (v && !reDigits.test(v)) return "半角数字のみで入力してください";
     }
     return "";
   };
@@ -112,7 +112,6 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
       values.login_id.trim().length > 0 &&
       values.password.trim().length > 0 &&
       values.name.trim().length > 0 &&
-      values.staff_code.trim().length > 0 &&
       !!resolvedOfficeId;
 
     const noFieldError = !Object.values(errors).some(Boolean);
@@ -262,11 +261,10 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
-              label="職員コード *"
+              label="職員コード"
               value={values.staff_code}
               onChange={handleChange("staff_code")}
               size="small"
-              required
               fullWidth
               error={Boolean(errors.staff_code)}
               helperText={errors.staff_code}
