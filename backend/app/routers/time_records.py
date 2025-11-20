@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse
 from fastapi.responses import StreamingResponse
 from io import BytesIO
 from openpyxl.styles import Alignment
+import os
 
 router = APIRouter()
 
@@ -32,7 +33,7 @@ class OfficeEntry(BaseModel):
 
 class StaffEntry(BaseModel):
     id: int
-    staffCode: str
+    staffCode: Optional[str] = None
     office: OfficeEntry
 
 class TimeRecordRequest(BaseModel):
@@ -305,7 +306,7 @@ def export_excel(request: TimeRecordRequest):
         )
 
         # 職員ID
-        ws["H3"] = request.staff.staffCode
+        ws["H3"] = request.staff.staffCode or ""
         ws["H3"].alignment = Alignment(
             horizontal="left",
             vertical="center",
