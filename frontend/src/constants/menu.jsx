@@ -232,7 +232,7 @@ export const menuCategories = [
   },
   {
     type: "other",
-    label: "その他",
+    label: "休憩・待機・その他",
     color: colors.other,
     items: [
       {

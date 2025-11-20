@@ -239,9 +239,7 @@ const StaffList = () => {
   const validateEditForm = (form) => {
     const errors = {};
     if (!form.name.trim()) errors.name = "氏名は必須です";
-    if (!form.staff_code.trim()) {
-      errors.staff_code = "職員コードは必須です";
-    } else if (!reDigits.test(form.staff_code)) {
+    if (form.staff_code.trim() && !reDigits.test(form.staff_code)) {
       errors.staff_code = "半角数字のみで入力してください";
     }
     return errors;

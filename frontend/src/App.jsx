@@ -17,6 +17,7 @@ import ProtectedLayout from "./components/ProtectedLayout";
 import Management from "./pages/pc/management/Management";
 import StaffList from "./pages/pc/management/StaffList";
 import StaffForm from "./pages/pc/management/StaffForm";
+import CreateReport from "./pages/pc/report/CreateReport";
 import SheetListPage from "./pages/mobile/sheetList";
 import TimelineView from "./pages/mobile/Timeline";
 import StaffSheet from "./pages/mobile/staffSheet";
@@ -235,6 +236,8 @@ function App() {
               <Route path="list" element={<StaffList />} />
               <Route path="add" element={<StaffForm />} />
             </Route>
+
+            <Route path="/report/create" element={<CreateReport />} />
 
             {/* ここにページを追加 */}
           </Route>
