@@ -12,35 +12,37 @@ import {
   Leaderboard as LeaderboardIcon,
   Description as DescriptionIcon,
   ManageAccounts as ManageAccountsIcon,
+  Assignment as AssignmentIcon,
+  Create as CreateIcon,
 } from "@mui/icons-material";
 
-import ConnectedUserListPage from "../pages/Admin/components/ConnectedUserListPage";
-import DashboardPage from "../pages/Admin/components/DashboardPage";
-import UserListPage from "../pages/Admin/components/UserListPage";
-import UserAddPage from "../pages/Admin/components/UserAddPage";
+// import ConnectedUserListPage from "../pages/Admin/components/ConnectedUserListPage";
+// import DashboardPage from "../pages/Admin/components/DashboardPage";
+// import UserListPage from "../pages/Admin/components/UserListPage";
+// import UserAddPage from "../pages/Admin/components/UserAddPage";
 
 // 管理者用ドロワーメニュー
 export const adminMenuItems = (setLoading) => [
-  {
-    label: "ダッシュボード",
-    icon: <DashboardIcon />,
-    content: <DashboardPage setLoading={setLoading} />,
-  },
-  {
-    label: "利用者追加",
-    icon: <PersonAddAlt1Icon />,
-    content: <UserAddPage setLoading={setLoading} />,
-  },
-  {
-    label: "利用者一覧",
-    icon: <GroupIcon />,
-    content: <UserListPage setLoading={setLoading} />,
-  },
-  {
-    label: "接続者一覧",
-    icon: <TapAndPlayIcon />,
-    content: <ConnectedUserListPage setLoading={setLoading} />,
-  },
+  // {
+  //   label: "ダッシュボード",
+  //   icon: <DashboardIcon />,
+  //   content: <DashboardPage setLoading={setLoading} />,
+  // },
+  // {
+  //   label: "利用者追加",
+  //   icon: <PersonAddAlt1Icon />,
+  //   content: <UserAddPage setLoading={setLoading} />,
+  // },
+  // {
+  //   label: "利用者一覧",
+  //   icon: <GroupIcon />,
+  //   content: <UserListPage setLoading={setLoading} />,
+  // },
+  // {
+  //   label: "接続者一覧",
+  //   icon: <TapAndPlayIcon />,
+  //   content: <ConnectedUserListPage setLoading={setLoading} />,
+  // },
   // {
   //   label: "設定",
   //   icon: <SettingsIcon />,
@@ -87,6 +89,21 @@ export const managementMenuItems = () => [
         label: "タイムスタディ",
         icon: AccessTimeIcon,
         path: "/record/time",
+      },
+    ],
+  },
+  {
+    id: "report",
+    label: "実績報告書",
+    icon: AssignmentIcon,
+    color: "#10B981",
+    isAdmin: true,
+    children: [
+      {
+        id: "create",
+        label: "報告書作成",
+        icon: CreateIcon,
+        path: "/report/create",
       },
     ],
   },
