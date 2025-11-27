@@ -44,6 +44,7 @@ const CreateReport = () => {
   const [dateDialogOpen, setDateDialogOpen] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
   const [tempSelectedDates, setTempSelectedDates] = useState([]);
+  const hasSelectedDates = selectedDates.length > 0;
 
   const user = getValue("user");
   const officeId = user?.office?.id;
@@ -85,6 +86,30 @@ const CreateReport = () => {
   const uniqueDatesCount = useMemo(() => {
     return datesWithRecords.size;
   }, [datesWithRecords]);
+
+  // 選択した日付の記録のみを抽出
+  const filteredRecords = useMemo(() => {
+    if (
+      !officeRecords ||
+      officeRecords.length === 0 ||
+      selectedDates.length === 0
+    ) {
+      return [];
+    }
+
+    const selectedDateStrings = new Set(
+      selectedDates.map((d) => d.format("YYYY-MM-DD"))
+    );
+
+    return officeRecords.filter((record) => {
+      if (!record.record_date) return false;
+      const dateStr =
+        typeof record.record_date === "string"
+          ? record.record_date
+          : dayjs(record.record_date).format("YYYY-MM-DD");
+      return selectedDateStrings.has(dateStr);
+    });
+  }, [officeRecords, selectedDates]);
 
   // 月が変更されたときに日付選択をリセットし、その月の全期間で記録を取得
   useEffect(() => {
@@ -155,40 +180,12 @@ const CreateReport = () => {
     // 選択を確定
     setSelectedDates([...tempSelectedDates]);
 
-    // 記録を取得
-    const sortedDates = [...tempSelectedDates].sort((a, b) => a - b);
-    const startDate = sortedDates[0].format("YYYY-MM-DD");
-    const endDate = sortedDates[sortedDates.length - 1].format("YYYY-MM-DD");
-
-    dispatch(
-      fetchOfficeTimeRecords({
-        officeId,
-        startDate,
-        endDate,
-        staff: "all",
-      })
-    );
-
     handleCloseDateDialog();
   };
 
   // 選択中の日付を解除
   const handleClearSelectedDates = () => {
     setSelectedDates([]);
-    // 記録をクリアするために、月の全期間で再取得（または空にする）
-    if (!officeId || !selectedMonth) return;
-
-    const startDate = selectedMonth.startOf("month").format("YYYY-MM-DD");
-    const endDate = selectedMonth.endOf("month").format("YYYY-MM-DD");
-
-    dispatch(
-      fetchOfficeTimeRecords({
-        officeId,
-        startDate,
-        endDate,
-        staff: "all",
-      })
-    );
   };
 
   const handleMonthSelect = (month) => {
@@ -299,14 +296,14 @@ const CreateReport = () => {
 
   // 記録を日勤と夜勤に分類
   const { dayShiftRecords, nightShiftRecords } = useMemo(() => {
-    if (!officeRecords || officeRecords.length === 0) {
+    if (!filteredRecords || filteredRecords.length === 0) {
       return { dayShiftRecords: [], nightShiftRecords: [] };
     }
 
     const dayRecords = [];
     const nightRecords = [];
 
-    officeRecords.forEach((record) => {
+    filteredRecords.forEach((record) => {
       const shiftType = classifyShift(record);
       if (shiftType === "night") {
         nightRecords.push(record);
@@ -319,7 +316,7 @@ const CreateReport = () => {
       dayShiftRecords: dayRecords,
       nightShiftRecords: nightRecords,
     };
-  }, [officeRecords, classifyShift]);
+  }, [filteredRecords, classifyShift]);
 
   // 余裕時間（bufferTime）の表示情報
   const bufferItemMeta = useMemo(() => {
@@ -372,10 +369,6 @@ const CreateReport = () => {
         0
       );
 
-      if (totalMinutes === 0) {
-        return [];
-      }
-
       const TYPE_KEYS = ["directCare", "indirectWork", "bufferTime", "other"];
       const entries = TYPE_KEYS.map((key) => {
         const category =
@@ -397,10 +390,14 @@ const CreateReport = () => {
           percentageRaw: percentage,
           minutes: parseFloat(typeMinutes[key].toFixed(1)),
         };
-      }).filter((item) => item.minutes > 0 || item.percentageRaw > 0);
+      });
 
-      if (entries.length === 0) {
-        return [];
+      // 記録が全くない場合は全て0%のまま返す
+      if (totalMinutes === 0) {
+        return entries.map((item) => ({
+          ...item,
+          percentage: 0,
+        }));
       }
 
       let sumRounded = 0;
@@ -485,7 +482,7 @@ const CreateReport = () => {
     selectedShiftStaffCounts,
     selectedShiftTotalHours,
   } = useMemo(() => {
-    if (selectedDates.length === 0) {
+    if (!hasSelectedDates) {
       return {
         selectedShiftPercentages: {
           day: { directCare: 0, indirectWork: 0, bufferTime: 0, other: 0 },
@@ -496,87 +493,44 @@ const CreateReport = () => {
       };
     }
 
-    // 選択した5日分の記録をフィルタリング
-    const selectedDateStrings = selectedDates.map((d) =>
-      d.format("YYYY-MM-DD")
-    );
-    const selectedRecords = officeRecords.filter((record) => {
-      if (!record.record_date) return false;
-      const dateStr =
-        typeof record.record_date === "string"
-          ? record.record_date
-          : dayjs(record.record_date).format("YYYY-MM-DD");
-      return selectedDateStrings.includes(dateStr);
-    });
-
-    // 選択した記録から日中と夜間を分類
-    const selectedDayRecords = [];
-    const selectedNightRecords = [];
-    const dayStaffIds = new Set();
-    const nightStaffIds = new Set();
-
-    selectedRecords.forEach((record) => {
-      const shiftType = classifyShift(record);
-      if (shiftType === "night") {
-        selectedNightRecords.push(record);
-        if (record.staff_id) {
-          nightStaffIds.add(record.staff_id);
-        }
-      } else {
-        selectedDayRecords.push(record);
-        if (record.staff_id) {
-          dayStaffIds.add(record.staff_id);
-        }
-      }
-    });
-
-    // 日中・夜間それぞれの業務タイプ別割合を計算
-    const dayPercentages = calculateTypePercentages(selectedDayRecords);
-    const nightPercentages = calculateTypePercentages(selectedNightRecords);
-
-    // 割合をオブジェクトに変換
     const getPercentage = (percentages, key) => {
       const entry = percentages.find((p) => p.key === key);
       return entry ? entry.percentage : 0;
     };
 
-    const calcTotalHours = (records) => {
-      let totalSeconds = 0;
-      records.forEach((record) => {
-        if (Array.isArray(record.record)) {
-          record.record.forEach((item) => {
-            totalSeconds += item.duration || 0;
-          });
-        }
-      });
-      return parseFloat((totalSeconds / 3600).toFixed(1));
-    };
-
     return {
       selectedShiftPercentages: {
         day: {
-          directCare: getPercentage(dayPercentages, "directCare"),
-          indirectWork: getPercentage(dayPercentages, "indirectWork"),
-          bufferTime: getPercentage(dayPercentages, "bufferTime"),
-          other: getPercentage(dayPercentages, "other"),
+          directCare: getPercentage(dayShiftPercentages, "directCare"),
+          indirectWork: getPercentage(dayShiftPercentages, "indirectWork"),
+          bufferTime: getPercentage(dayShiftPercentages, "bufferTime"),
+          other: getPercentage(dayShiftPercentages, "other"),
         },
         night: {
-          directCare: getPercentage(nightPercentages, "directCare"),
-          indirectWork: getPercentage(nightPercentages, "indirectWork"),
-          bufferTime: getPercentage(nightPercentages, "bufferTime"),
-          other: getPercentage(nightPercentages, "other"),
+          directCare: getPercentage(nightShiftPercentages, "directCare"),
+          indirectWork: getPercentage(nightShiftPercentages, "indirectWork"),
+          bufferTime: getPercentage(nightShiftPercentages, "bufferTime"),
+          other: getPercentage(nightShiftPercentages, "other"),
         },
       },
       selectedShiftStaffCounts: {
-        day: dayStaffIds.size,
-        night: nightStaffIds.size,
+        day: dayShiftStaffCount,
+        night: nightShiftStaffCount,
       },
       selectedShiftTotalHours: {
-        day: calcTotalHours(selectedDayRecords),
-        night: calcTotalHours(selectedNightRecords),
+        day: parseFloat(dayShiftTotalHours) || 0,
+        night: parseFloat(nightShiftTotalHours) || 0,
       },
     };
-  }, [selectedDates, officeRecords, calculateTypePercentages, classifyShift]);
+  }, [
+    hasSelectedDates,
+    dayShiftPercentages,
+    nightShiftPercentages,
+    dayShiftStaffCount,
+    nightShiftStaffCount,
+    dayShiftTotalHours,
+    nightShiftTotalHours,
+  ]);
 
   // Excelテンプレートダウンロード
   const handleDownloadTemplate = async () => {
@@ -649,8 +603,6 @@ const CreateReport = () => {
   };
 
   const open = Boolean(anchorEl);
-
-  const hasSelectedDates = selectedDates.length > 0;
 
   return (
     <PageSectionLayout>
