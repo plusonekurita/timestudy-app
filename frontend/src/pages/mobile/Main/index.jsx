@@ -19,16 +19,8 @@ const MainPage = () => {
   const [selectedTab, setSelectedTab] = useState(0); // タブの管理
 
   // ストップウォッチ関連の状態(カスタムフック)
-  const {
-    activeItem,
-    isRunning,
-    elapsedTime,
-    startTimer,
-    pauseTimer,
-    resumeTimer,
-    stopTimer,
-    cloaseTimer,
-  } = useStopwatchContext();
+  const { activeItem, elapsedTime, startTimer, stopTimer, cloaseTimer } =
+    useStopwatchContext();
 
   // タブが変更されたときのハンドラ
   const handleChange = (_event, newValue) => {
@@ -94,11 +86,8 @@ const MainPage = () => {
           icon={activeItem.icon}
           color={activeItem.color}
           elapsedTime={elapsedTime}
-          isRunning={isRunning} // 実行状態を渡す
           onClose={cloaseTimer} // 閉じるボタン(保存無し)の処理 (カスタムフック関数)
           onStop={stopTimer} // ストップボタンの処理 (カスタムフック関数)
-          onPause={pauseTimer} // 一時停止ボタンの処理 (カスタムフック関数)
-          onResume={resumeTimer} // 一時停止から再生ボタンの処理 (カスタムフック関数)
         />
       )}
     </Box>

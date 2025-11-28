@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import DetailedHorizontalBarChart from "./components/DetailedHorizontalBarChart";
 import FullscreenProgressBar from "../../../components/FullscreenProgressBar";
 import CategoryStackedBarChart from "./components/CategoryStackedBarChart";
-import DatePickerWithToday from "../../../components/DatePickerWithToday";
+import RangeDateSelector from "./components/RangeDateSelector";
 import CategorySummaryList from "./components/CategorySummaryList";
 import { useFetchRecords } from "../../../hooks/useFetchRecords";
 import { useRecordData } from "../../../hooks/useRecordData";
@@ -33,21 +33,12 @@ const RecordsPage = () => {
   );
 
   // カレンダー操作
-  const handleStartDateChange = (newStart) => {
-    console.log(newStart);
-    setStartDate(newStart);
-    // 開始日を終了日より後に選択した場合は終了日も同じ日に変更
-    // if (endDate && newStart.isAfter(endDate)) {
-    setEndDate(newStart);
-    // }
-  };
-
-  const handleEndDateChange = (newEnd) => {
-    setEndDate(newEnd);
-    // 終了日を開始日より前にしたら開始日も同じ日に変更
-    if (startDate && newEnd.isBefore(startDate)) {
-      setStartDate(newEnd); // ✅ 開始日を合わせる
+  const handleRangeChange = (nextStart, nextEnd) => {
+    if (!nextStart || !nextEnd) {
+      return;
     }
+    setStartDate(nextStart);
+    setEndDate(nextEnd);
   };
 
   return (
@@ -66,24 +57,12 @@ const RecordsPage = () => {
       <FullscreenProgressBar loading={loading} />
       <>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ja">
-          <Box display="flex" justifyContent="space-around" width="100%">
-            <DatePickerWithToday
-              label="開始日"
-              value={startDate}
-              maxDate={today}
-              onChange={handleStartDateChange}
-              inputBorder={true}
-            />
-            <Typography sx={{ marginTop: "21px" }}>～</Typography>
-            <DatePickerWithToday
-              label="開始日"
-              value={endDate}
-              maxDate={today}
-              minDate={startDate}
-              onChange={handleEndDateChange}
-              inputBorder={true}
-            />
-          </Box>
+          <RangeDateSelector
+            startDate={startDate}
+            endDate={endDate}
+            maxDate={today}
+            onChange={handleRangeChange}
+          />
         </LocalizationProvider>
 
         <Grid container sx={{ width: "100%", mt: 2 }}>
