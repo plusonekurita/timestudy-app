@@ -10,7 +10,6 @@ const SESSION_TIMEOUT = 3 * 60 * 60 * 1000; // 3時間（テスト用は 10 * 10
 export const saveSessionStart = () => {
   const startTime = Date.now();
   localStorage.setItem(SESSION_START_KEY, startTime.toString());
-  console.log("セッション開始時刻を保存:", new Date(startTime).toLocaleString());
 };
 
 /**
@@ -27,7 +26,6 @@ export const getSessionStart = () => {
  */
 export const clearSessionStart = () => {
   localStorage.removeItem(SESSION_START_KEY);
-  console.log("セッション開始時刻をクリア");
 };
 
 /**
@@ -42,10 +40,6 @@ export const isSessionValid = () => {
 
   const elapsed = Date.now() - startTime;
   const isValid = elapsed < SESSION_TIMEOUT;
-  
-  if (!isValid) {
-    console.log(`セッションタイムアウト: ${elapsed}ms経過（タイムアウト: ${SESSION_TIMEOUT}ms）`);
-  }
   
   return isValid;
 };

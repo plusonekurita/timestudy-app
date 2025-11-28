@@ -65,7 +65,6 @@ function App() {
     }
 
     if (!isSessionValid()) {
-      console.log("セッションタイムアウト: 自動ログアウトを実行");
       performLogout(dispatch);
       setIsIdleModalOpen(false);
     }

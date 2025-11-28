@@ -50,9 +50,14 @@ const ProtectedLayout = () => {
     navItems.push(...SHEET_NAV);
   }
 
-  const currentIndex = navItems.findIndex((item) =>
-    location.pathname.startsWith(item.path)
-  );
+  // より具体的なパス（長いパス）を優先的にマッチするため、逆順で検索
+  let currentIndex = -1;
+  for (let i = navItems.length - 1; i >= 0; i--) {
+    if (location.pathname.startsWith(navItems[i].path)) {
+      currentIndex = i;
+      break;
+    }
+  }
   const isAdminPage = location.pathname.startsWith("/admin");
   const isMenuPage = location.pathname.startsWith("/menu");
 
@@ -237,10 +242,10 @@ const ProtectedLayout = () => {
       </Box>
 
       {/* 既存のフッター（条件はそのまま） */}
-      {isMobile && !isAdminPage && !isMenuPage && (
+      {isMobile && !isAdminPage && !isMenuPage && navItems.length > 0 && (
         <BottomNavigation
           showLabels
-          value={currentIndex}
+          value={currentIndex >= 0 ? currentIndex : 0}
           onChange={(_e, newValue) => navigate(navItems[newValue].path)}
           sx={{
             position: "fixed",
