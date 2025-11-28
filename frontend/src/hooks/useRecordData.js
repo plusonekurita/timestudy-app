@@ -50,7 +50,7 @@ export const useRecordData = (records = [], startDate, endDate) => {
         : [];
 
     // API記録の中から当日以外を抽出
-    const nonTodayRecords = records.filter(
+    const nonTodayRecords = (Array.isArray(records) ? records : []).filter(
       (rec) => rec.record_date !== todayKey
     );
 

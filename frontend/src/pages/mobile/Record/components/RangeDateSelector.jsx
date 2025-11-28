@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Typography from "@mui/material/Typography";
 import { alpha, styled } from "@mui/material/styles";
 import DateRangeIcon from "@mui/icons-material/DateRange";
 import TodayIcon from "@mui/icons-material/Today";
@@ -34,15 +33,13 @@ const StyledPickersDay = styled(PickersDay, {
   }),
 }));
 
-const formatLabel = (date) =>
-  date ? date.format("YYYY年M月D日(ddd)") : "未選択";
-
 const RangeDateSelector = ({
   startDate,
   endDate,
   minDate,
   maxDate,
   onChange,
+  onSelectionComplete,
 }) => {
   const [mode, setMode] = useState(
     startDate && endDate && !startDate.isSame(endDate, "day")
@@ -50,15 +47,32 @@ const RangeDateSelector = ({
       : "single"
   );
   const [pendingStart, setPendingStart] = useState(null);
+  // 期間選択時の一時的な日付状態
+  const [tempStartDate, setTempStartDate] = useState(startDate);
+  const [tempEndDate, setTempEndDate] = useState(endDate);
+  // 前回選択された日付（年変更を検知するため）
+  const [lastSelectedDate, setLastSelectedDate] = useState(startDate);
+
+  // startDate/endDateが変更された時に一時的な日付も更新
+  useEffect(() => {
+    setTempStartDate(startDate);
+    setTempEndDate(endDate);
+    setLastSelectedDate(startDate);
+  }, [startDate, endDate]);
 
   const handleModeChange = (_event, nextMode) => {
     if (!nextMode) return;
     setMode(nextMode);
     if (nextMode === "single" && startDate) {
-      onChange(startDate, startDate);
+      // モード変更時はonChangeを呼ばず、内部状態だけを更新
       setPendingStart(null);
+      setTempStartDate(startDate);
+      setTempEndDate(startDate);
+      setLastSelectedDate(startDate);
     } else {
       setPendingStart(null);
+      setTempStartDate(startDate);
+      setTempEndDate(endDate);
     }
   };
 
@@ -67,6 +81,13 @@ const RangeDateSelector = ({
     onChange(today, today);
     setMode("single");
     setPendingStart(null);
+    setTempStartDate(today);
+    setTempEndDate(today);
+    setLastSelectedDate(today);
+    // 「今日」ボタンを押した時は単日選択なのでカレンダーを閉じる
+    if (onSelectionComplete) {
+      onSelectionComplete();
+    }
   };
 
   const handleSelectDay = (selectedDay) => {
@@ -74,36 +95,52 @@ const RangeDateSelector = ({
     const normalizedDay = selectedDay.startOf("day");
 
     if (mode === "single") {
+      // 年だけが変わっている場合はカレンダーを閉じない
+      if (
+        lastSelectedDate &&
+        normalizedDay.year() !== lastSelectedDate.year() &&
+        normalizedDay.month() === lastSelectedDate.month() &&
+        normalizedDay.date() === lastSelectedDate.date()
+      ) {
+        // 年だけが変わっている場合はonChangeを呼ばず、内部状態だけを更新
+        setLastSelectedDate(normalizedDay);
+        return;
+      }
+
+      // 日付が選択された場合は確定してカレンダーを閉じる
       onChange(normalizedDay, normalizedDay);
+      setLastSelectedDate(normalizedDay);
+      if (onSelectionComplete) {
+        onSelectionComplete();
+      }
       return;
     }
 
+    // 期間選択時は内部状態だけを更新（onChangeは呼ばない）
     if (!pendingStart) {
       setPendingStart(normalizedDay);
-      onChange(normalizedDay, normalizedDay);
+      setTempStartDate(normalizedDay);
+      setTempEndDate(normalizedDay);
       return;
     }
 
     if (normalizedDay.isBefore(pendingStart, "day")) {
-      onChange(normalizedDay, pendingStart);
+      setTempStartDate(normalizedDay);
+      setTempEndDate(pendingStart);
     } else {
-      onChange(pendingStart, normalizedDay);
+      setTempStartDate(pendingStart);
+      setTempEndDate(normalizedDay);
     }
     setPendingStart(null);
   };
 
-  const summaryText = useMemo(() => {
-    if (!startDate || !endDate) {
-      return "日付を選択してください";
+  const handleOk = () => {
+    // OKボタンを押した時だけonChangeを呼ぶ
+    onChange(tempStartDate, tempEndDate);
+    if (onSelectionComplete) {
+      onSelectionComplete();
     }
-    if (startDate.isSame(endDate, "day")) {
-      return formatLabel(startDate);
-    }
-    const days = endDate.diff(startDate, "day") + 1;
-    return `${formatLabel(startDate)} 〜 ${formatLabel(
-      endDate
-    )}（${days}日分）`;
-  }, [startDate, endDate]);
+  };
 
   const RangeHighlightDay = (DayComponentProps) => {
     const { day, outsideCurrentMonth, ...other } = DayComponentProps;
@@ -111,13 +148,17 @@ const RangeDateSelector = ({
       return <PickersDay day={day} outsideCurrentMonth {...other} />;
     }
     const normalizedDay = dayjs(day);
-    const isStart = startDate ? normalizedDay.isSame(startDate, "day") : false;
-    const isEnd = endDate ? normalizedDay.isSame(endDate, "day") : false;
+    // 期間選択モードでは一時的な日付を表示
+    const displayStart = mode === "range" ? tempStartDate : startDate;
+    const displayEnd = mode === "range" ? tempEndDate : endDate;
+    
+    const isStart = displayStart ? normalizedDay.isSame(displayStart, "day") : false;
+    const isEnd = displayEnd ? normalizedDay.isSame(displayEnd, "day") : false;
     const isBetween =
-      startDate &&
-      endDate &&
-      normalizedDay.isAfter(startDate, "day") &&
-      normalizedDay.isBefore(endDate, "day");
+      displayStart &&
+      displayEnd &&
+      normalizedDay.isAfter(displayStart, "day") &&
+      normalizedDay.isBefore(displayEnd, "day");
     return (
       <StyledPickersDay
         {...other}
@@ -135,9 +176,14 @@ const RangeDateSelector = ({
       elevation={3}
       sx={{
         width: "100%",
+        height: "100%",
         p: 2,
         borderRadius: 3,
-        mb: 2,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 0,
+        overflow: "hidden",
+        boxSizing: "border-box",
       }}
     >
       <Box
@@ -148,6 +194,9 @@ const RangeDateSelector = ({
           mb: 1.5,
           flexWrap: "wrap",
           gap: 1,
+          width: "100%",
+          maxWidth: "100%",
+          boxSizing: "border-box",
         }}
       >
         <ToggleButtonGroup
@@ -171,24 +220,78 @@ const RangeDateSelector = ({
         </Button>
       </Box>
 
-      <Typography variant="subtitle2" color="text.secondary">
-        選択中
-      </Typography>
-      <Typography variant="body1" sx={{ fontWeight: "bold", mb: 2 }}>
-        {summaryText}
-      </Typography>
-
-      <DateCalendar
-        value={endDate || startDate || dayjs()}
-        onChange={handleSelectDay}
-        minDate={minDate}
-        maxDate={maxDate}
-        showDaysOutsideCurrentMonth
-        onMonthChange={() => setPendingStart(null)}
-        slots={{
-          day: RangeHighlightDay,
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+          overflow: "hidden",
+          width: "100%",
+          maxWidth: "100%",
         }}
-      />
+      >
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            overflowX: "hidden",
+            width: "100%",
+            maxWidth: "100%",
+            "& .MuiPickersCalendarHeader-root": {
+              maxWidth: "100%",
+            },
+            "& .MuiDayCalendar-weekContainer": {
+              maxWidth: "100%",
+            },
+            "& .MuiPickersDay-root": {
+              maxWidth: "100%",
+            },
+          }}
+        >
+          <DateCalendar
+            value={mode === "range" ? (tempEndDate || tempStartDate || dayjs()) : (endDate || startDate || dayjs())}
+            onChange={handleSelectDay}
+            minDate={minDate}
+            maxDate={maxDate}
+            showDaysOutsideCurrentMonth
+            onMonthChange={() => setPendingStart(null)}
+            slots={{
+              day: RangeHighlightDay,
+            }}
+            sx={{
+              width: "100%",
+              maxWidth: "100%",
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* 期間選択モードの時だけOKボタンを表示 */}
+      {mode === "range" && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            pt: 2,
+            pb: 2,
+            width: "100%",
+            maxWidth: "100%",
+            boxSizing: "border-box",
+          }}
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleOk}
+            disabled={!tempStartDate || !tempEndDate}
+            size="large"
+            sx={{ minWidth: "120px" }}
+          >
+            OK
+          </Button>
+        </Box>
+      )}
     </Paper>
   );
 };
