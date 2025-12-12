@@ -10,7 +10,7 @@ from app.utils.exceptions import ApiException
 from passlib.hash import bcrypt
 from pydantic import BaseModel, Field, constr
 from typing import Annotated
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 from app.websocket_manager import manager
 
 JST = timezone(timedelta(hours=9))
