@@ -4,7 +4,7 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useIdleTimer } from "react-idle-timer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import TimeStudySurvey from "./pages/pc/surveySheet/TimeStudySurvey";
 import NotificationSnackbar from "./components/NotificationSnackbar";
@@ -17,6 +17,7 @@ import ProtectedLayout from "./components/ProtectedLayout";
 import Management from "./pages/pc/management/Management";
 import StaffList from "./pages/pc/management/StaffList";
 import StaffForm from "./pages/pc/management/StaffForm";
+import CreateReport from "./pages/pc/report/CreateReport";
 import SheetListPage from "./pages/mobile/sheetList";
 import TimelineView from "./pages/mobile/Timeline";
 import StaffSheet from "./pages/mobile/staffSheet";
@@ -27,15 +28,25 @@ import MainPage from "./pages/mobile/Main";
 import TopMenu from "./pages/TopMenu";
 import LoginPage from "./pages/Login";
 import AdminPage from "./pages/Admin";
+import AddOfficePage from "./pages/Admin/AddOffice";
+import OfficesPage from "./pages/Admin/Offices";
+import StaffsPage from "./pages/Admin/Staffs";
+import {
+  isSessionValid,
+  getSessionTimeout,
+  initSessionBroadcast,
+  listenSessionLogout,
+  saveSessionStart,
+} from "./utils/sessionManager";
 
-// アイドルタイマーの設定時間 TODO: タイムスタディなので必要なのか検討
-const IDLE_TIMEOUT = 6 * 60 * 60 * 1000; // 6時間
-// const IDLE_TIMEOUT = 30 * 60 * 10000; // 30分
-// const IDLE_TIMEOUT = 10 * 1000; // 10秒 テスト用
+// セッションタイムアウト時間（テスト用：10秒、本番では3時間）
+const SESSION_TIMEOUT = getSessionTimeout();
 
 function App() {
   const dispatch = useDispatch();
   const [isIdleModalOpen, setIsIdleModalOpen] = useState(false);
+  const sessionCheckIntervalRef = useRef(null);
+  const broadcastChannelRef = useRef(null);
 
   // ルートパスのリダイレクト用に認証状態を取得
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -47,10 +58,26 @@ function App() {
     severity: snackbarSeverity,
   } = useSelector((state) => state.snackbar);
 
-  // アイドル状態になったときの処理
+  // セッションチェックとログアウト処理
+  const checkSessionAndLogout = useCallback(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    if (!isSessionValid()) {
+      performLogout(dispatch);
+      setIsIdleModalOpen(false);
+    }
+  }, [isAuthenticated, dispatch]);
+
+  // アイドル状態になったときの処理（セッションタイムアウトチェック）
   const handleOnIdle = () => {
     if (isAuthenticated && !isIdleModalOpen) {
-      setIsIdleModalOpen(true);
+      checkSessionAndLogout();
+      if (isAuthenticated) {
+        // セッションがまだ有効な場合はモーダルを表示
+        setIsIdleModalOpen(true);
+      }
     }
   };
 
@@ -69,12 +96,105 @@ function App() {
     dispatch(hideSnackbar()); // Snackbar を閉じるアクション
   };
 
-  // useIdleTimerフック
+  // ページロード時と認証状態が変わったときのセッションチェック
+  useEffect(() => {
+    if (isAuthenticated) {
+      // 認証済みの場合、セッション有効性をチェック
+      checkSessionAndLogout();
+    }
+  }, [isAuthenticated, checkSessionAndLogout]);
+
+  // バックグラウンドタイマーで定期的にセッションチェック（1秒ごと）
+  useEffect(() => {
+    if (isAuthenticated) {
+      // 1秒ごとにセッションチェック
+      sessionCheckIntervalRef.current = setInterval(() => {
+        checkSessionAndLogout();
+      }, 1000);
+
+      return () => {
+        if (sessionCheckIntervalRef.current) {
+          clearInterval(sessionCheckIntervalRef.current);
+        }
+      };
+    } else {
+      if (sessionCheckIntervalRef.current) {
+        clearInterval(sessionCheckIntervalRef.current);
+      }
+    }
+  }, [isAuthenticated, checkSessionAndLogout]);
+
+  // ページの可視性が変わったとき（スリープ復帰時など）にセッションチェック
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && isAuthenticated) {
+        // ページが表示されたときにセッションチェック
+        checkSessionAndLogout();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleVisibilityChange);
+    };
+  }, [isAuthenticated, checkSessionAndLogout]);
+
+  // タブ間同期の設定
+  useEffect(() => {
+    if (isAuthenticated) {
+      // BroadcastChannelを初期化
+      broadcastChannelRef.current = initSessionBroadcast();
+
+      // 他のタブからのログアウト通知をリッスン
+      const cleanup = listenSessionLogout(() => {
+        console.log("他のタブからログアウト通知を受信");
+        performLogout(dispatch);
+        setIsIdleModalOpen(false);
+      });
+
+      return () => {
+        cleanup();
+        if (broadcastChannelRef.current) {
+          try {
+            broadcastChannelRef.current.close();
+          } catch (error) {
+            console.warn("BroadcastChannelのクローズに失敗:", error);
+          }
+        }
+      };
+    }
+  }, [isAuthenticated]);
+
+  // ユーザーアクションがあったときにセッション開始時刻をリセット
+  const handleOnAction = useCallback(() => {
+    if (isAuthenticated) {
+      saveSessionStart();
+    }
+  }, [isAuthenticated]);
+
+  // useIdleTimerフック（セッションタイムアウト用）
   useIdleTimer({
-    timeout: IDLE_TIMEOUT, // タイムアウト時間
+    timeout: SESSION_TIMEOUT, // セッションタイムアウト時間
     onIdle: handleOnIdle, // アイドル状態になったときに呼ばれる関数
+    onAction: handleOnAction, // ユーザーアクションがあったときに呼ばれる関数
     debounce: 500, // イベント処理のデバウンス
     disabled: !isAuthenticated, // 未ログインの時は無効
+    stopOnIdle: false, // アイドル状態でもタイマーを継続
+    crossTab: true, // 複数タブ間で状態を共有
+    startOnMount: true, // マウント時に開始
+    syncTimers: true, // タイマーを同期
+    events: [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click",
+      "keydown",
+    ], // 監視するイベント
   });
 
   return (
@@ -84,9 +204,14 @@ function App() {
           {/* ログインページ*/}
           <Route path="/login" element={<LoginPage />} />
 
+          {/* 管理画面（簡易版・公開ルート）*/}
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/offices/new" element={<AddOfficePage />} />
+          <Route path="/admin/offices" element={<OfficesPage />} />
+          <Route path="/admin/staffs" element={<StaffsPage />} />
+
           {/* 認証が必要なページ*/}
           <Route element={<ProtectedLayout />}>
-            <Route path="/admin" element={<AdminPage />} />
             <Route path="/menu" element={<TopMenu />} />
 
             <Route path="/time" element={<MainPage />} />
@@ -110,6 +235,8 @@ function App() {
               <Route path="list" element={<StaffList />} />
               <Route path="add" element={<StaffForm />} />
             </Route>
+
+            <Route path="/report/create" element={<CreateReport />} />
 
             {/* ここにページを追加 */}
           </Route>

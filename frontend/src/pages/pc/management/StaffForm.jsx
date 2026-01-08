@@ -9,14 +9,30 @@ import {
   Stack,
   Grid,
 } from "@mui/material";
+// src/features/staff/StaffForm.jsx
 import React, { useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
 
+import { showSnackbar } from "../../../store/slices/snackbarSlice";
+import { setStaffList } from "../../../store/slices/staffSlice";
 import { getValue } from "../../../utils/localStorageUtils";
 import { apiFetch } from "../../../utils/api";
 
 const StaffForm = ({ officeId, onSuccess, onCancel }) => {
+  const dispatch = useDispatch();
   const user = getValue("user");
   const resolvedOfficeId = officeId ?? user?.office?.id;
+
+  // 全角→半角（英数字）
+  const toHalfWidthEN = (str = "") =>
+    String(str).replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) =>
+      String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+    );
+
+  // ルール
+  const reAlnum6 = /^[A-Za-z0-9]{6,}$/; // 半角英数字のみ・6文字以上（ログインID用）
+  const reAlnum8 = /^[A-Za-z0-9]{8,}$/; // 半角英数字のみ・8文字以上（パスワード用）
+  const reDigits = /^[0-9]+$/; // 半角数字のみ
 
   const [values, setValues] = useState({
     // 認証
@@ -34,29 +50,115 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
     is_active: true,
     is_admin: false,
   });
+
+  const [errors, setErrors] = useState({
+    login_id: "",
+    password: "",
+    staff_code: "",
+  });
+
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState("");
 
+  // 単項目バリデーション
+  const validateField = (key, v) => {
+    if (key === "login_id") {
+      if (!v) return "必須項目です";
+      if (!reAlnum6.test(v)) return "半角英数字6文字以上で入力してください";
+    }
+    if (key === "password") {
+      if (!v) return "必須項目です";
+      if (!reAlnum8.test(v)) return "半角英数字8文字以上で入力してください";
+    }
+    if (key === "staff_code") {
+      if (v && !reDigits.test(v)) return "半角数字のみで入力してください";
+    }
+    return "";
+  };
+
+  // 全体バリデーション
+  const validateAll = (vals) => {
+    const e = {
+      login_id: validateField("login_id", vals.login_id),
+      password: validateField("password", vals.password),
+      staff_code: validateField("staff_code", vals.staff_code),
+    };
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  };
+
+  // 入力ハンドラ（対象は半角化＆空白除去）
+  const handleChange = (key) => (e) => {
+    const raw =
+      e?.target?.type === "checkbox" ? e.target.checked : e.target.value;
+    let v = raw;
+
+    if (["login_id", "password", "staff_code"].includes(key)) {
+      v = toHalfWidthEN(String(raw)).replace(/\s/g, "");
+    }
+
+    setValues((prev) => {
+      const next = { ...prev, [key]: v };
+      if (["login_id", "password", "staff_code"].includes(key)) {
+        setErrors((pe) => ({ ...pe, [key]: validateField(key, v) }));
+      }
+      return next;
+    });
+  };
+
+  // 送信可否
   const canSubmit = useMemo(() => {
-    return (
+    const requiredFilled =
       values.login_id.trim().length > 0 &&
       values.password.trim().length > 0 &&
       values.name.trim().length > 0 &&
-      values.staff_code.trim().length > 0 &&
-      !!resolvedOfficeId &&
-      !submitting
-    );
-  }, [values, resolvedOfficeId, submitting]);
+      !!resolvedOfficeId;
 
-  const handleChange = (key) => (e) => {
-    const v =
-      e?.target?.type === "checkbox" ? e.target.checked : e.target.value;
-    setValues((prev) => ({ ...prev, [key]: v }));
+    const noFieldError = !Object.values(errors).some(Boolean);
+    return Boolean(requiredFilled && noFieldError && !submitting);
+  }, [values, errors, resolvedOfficeId, submitting]);
+
+  const resetForm = () => {
+    setValues({
+      login_id: "",
+      password: "",
+      name: "",
+      staff_code: "",
+      job: "",
+      email: "",
+      phone_number: "",
+      is_active: true,
+      is_admin: false,
+    });
+    setErrors({ login_id: "", password: "", staff_code: "" });
+  };
+
+  // スタッフリストを再取得する関数
+  const refreshStaffList = async () => {
+    try {
+      const staffList = await apiFetch(`/offices/${resolvedOfficeId}/staffs`);
+      dispatch(setStaffList(staffList));
+    } catch (error) {
+      console.warn("スタッフリストの再取得に失敗しました", error);
+    }
   };
 
   const handleSubmit = async (e) => {
     e?.preventDefault?.();
+
+    // クライアント側最終チェック
+    if (!validateAll(values)) {
+      dispatch(
+        showSnackbar({
+          message: "入力内容を確認してください",
+          severity: "warning",
+        })
+      );
+      return;
+    }
+
     if (!canSubmit) return;
+
     setSubmitting(true);
     setErr("");
     try {
@@ -79,9 +181,24 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
           is_admin: values.is_admin,
         },
       });
+
+      // フォーム初期化
+      resetForm();
+
+      // スタッフリストを再取得
+      await refreshStaffList();
+
+      // 成功通知
+      dispatch(
+        showSnackbar({ message: "スタッフを登録しました", severity: "success" })
+      );
+
       onSuccess?.(created);
     } catch (e) {
-      setErr(e?.message || "登録に失敗しました");
+      const msg = e?.message || "登録に失敗しました";
+      setErr(msg);
+      // エラー通知
+      dispatch(showSnackbar({ message: msg, severity: "error" }));
     } finally {
       setSubmitting(false);
     }
@@ -109,6 +226,9 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
               fullWidth
               autoFocus
               autoComplete="username"
+              error={Boolean(errors.login_id)}
+              helperText={errors.login_id}
+              inputProps={{ inputMode: "latin", pattern: "[A-Za-z0-9]*" }}
             />
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
@@ -121,6 +241,9 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
               fullWidth
               type="password"
               autoComplete="new-password"
+              error={Boolean(errors.password)}
+              helperText={errors.password}
+              inputProps={{ inputMode: "latin", pattern: "[A-Za-z0-9]*" }}
             />
           </Grid>
 
@@ -138,12 +261,14 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
-              label="職員コード *"
+              label="職員コード"
               value={values.staff_code}
               onChange={handleChange("staff_code")}
               size="small"
-              required
               fullWidth
+              error={Boolean(errors.staff_code)}
+              helperText={errors.staff_code}
+              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
             />
           </Grid>
 
@@ -157,7 +282,8 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
               fullWidth
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
+          {/* メールアドレスと電話番号を一時的に非表示 */}
+          {/* <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label="メールアドレス"
               value={values.email}
@@ -178,7 +304,7 @@ const StaffForm = ({ officeId, onSuccess, onCancel }) => {
               fullWidth
               autoComplete="tel"
             />
-          </Grid>
+          </Grid> */}
 
           {/* フラグ（横並び） */}
           <Grid size={{ xs: 12, md: 6 }}>

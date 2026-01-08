@@ -1,0 +1,323 @@
+.admin-layout {
+  display: flex;
+  height: 100vh; // 余分なスクロールを防ぐため固定高さ
+  overflow: hidden; // ページ全体の縦スクロールを抑制
+  background: #0b0b0c; // Patreon風のダーク背景
+  color: #e6e6e6;
+}
+
+.admin-sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 8px 24px; // 下側の余白を増やす
+  background: #111113;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  height: 100vh;
+  /* 全体はスクロールさせない。スクロールはナビ領域のみ */
+  width: 72px; // 977px未満のデフォルト（アイコンのみ）
+}
+
+@media (min-width: 978px) {
+  .admin-sidebar {
+    width: 240px; // 978px以上はラベル表示のため広く
+    padding: 16px 12px 24px; // 下余白を維持
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+}
+
+.app-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #5a5df0 0%, #9b5af0 100%);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.app-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.theme-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: inherit;
+  border: 2px solid rgba(255,255,255,.35);
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.theme-toggle:hover { background: rgba(255,255,255,.06); }
+.admin-layout.theme-light .theme-toggle { border-color:#cbd5e1; }
+.admin-layout.theme-light .theme-toggle:hover { background:#e5e7eb; }
+
+// 977px未満はアプリ名を隠す
+@media (max-width: 977px) {
+  .app-name { display: none; }
+  .admin-sidebar { width: 56px; } // より細く
+  .sidebar-header { justify-content: center; }
+  .sidebar-nav {
+    align-items: center;     // 水平方向センター
+    gap: 12px;
+    overflow-y: auto;        // 画面が小さい時のみスクロール
+  }
+  .nav-item {
+    padding: 8px 0;          // 余白をコンパクトに
+    width: 100%;
+    justify-content: center; // アイコンを中央（上下は通常配置）
+  }
+  .sidebar-footer { align-items: center; display: flex; justify-content: center; }
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+  gap: 6px;
+  flex: 1;            // 残り高さを占有
+  min-height: 0;      // flex子要素でoverflowを有効にするため
+  overflow-y: auto;   // 画面が小さい時だけ自動的にスクロールが出る
+  padding-bottom: 8px;
+}
+
+.sidebar-footer {
+  margin-top: auto;   // 常に最下部に固定
+  position: sticky;
+  bottom: 8px;        // 画面下から少し余白
+  background: #111113;
+  padding-top: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #e6e6e6;
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-icon {
+  font-size: 22px;
+}
+
+.nav-label {
+  font-size: 14px;
+}
+
+// 977px未満はラベルを非表示にしてアイコンのみ
+@media (max-width: 977px) {
+  .nav-label {
+    display: none;
+  }
+}
+
+.admin-content {
+  flex: 1;
+  padding: 24px;
+  overflow: auto; // メイン領域がはみ出す場合のみ内部スクロール
+}
+
+/* Top loading bar (fixed overlay) */
+.top-loader { height: 5px; position: fixed; top: 0; left: 0; right: 0; width: 100vw; display: none; border-radius: 0 0 3px 3px; overflow: hidden; z-index: 2000; pointer-events: none; }
+.top-loader.show { display: block; }
+.top-loader::before {
+  content: "";
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(0, 255, 255, .20), rgba(64, 224, 255, .95), rgba(0, 255, 255, .20)); /* サイアン系 */
+  box-shadow: 0 0 10px rgba(64,224,255,.55);
+  animation:
+    tl-shimmer 1.2s ease-in-out infinite,
+    tl-color 3s ease-in-out infinite alternate; /* 色相変化（シアン→ピンク）*/
+}
+@keyframes tl-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+@keyframes tl-color {
+  0% {
+    background: linear-gradient(90deg, rgba(0, 255, 255, .20), rgba(64, 224, 255, .95), rgba(0, 255, 255, .20));
+    box-shadow: 0 0 10px rgba(64,224,255,.55);
+  }
+  50% {
+    background: linear-gradient(90deg, rgba(255, 105, 180, .20), rgba(255, 105, 180, .95), rgba(255, 105, 180, .20)); /* ピンク */
+    box-shadow: 0 0 12px rgba(255,105,180,.6);
+  }
+  100% {
+    background: linear-gradient(90deg, rgba(0, 255, 255, .20), rgba(64, 224, 255, .95), rgba(0, 255, 255, .20));
+    box-shadow: 0 0 10px rgba(64,224,255,.55);
+  }
+}
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin-top: 12px; }
+.card { background:#141417; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:16px; }
+/* 管理画面内の.card-titleのみに適用（グローバルに影響しないように） */
+.admin-layout .card-title { color:#b9b9b9; font-size:12px; letter-spacing:.5px; }
+.card-value { font-size:28px; font-weight:700; margin-top:6px; }
+.increase-badge { color:#4ade80; font-size:16px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
+
+.office-form {
+  display: grid;
+  grid-template-columns: 1fr; // 項目ごとに改行
+  gap: 12px;
+  margin-top: 12px;
+}
+.office-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;      // 少し大きく
+  font-weight: 600;     // 太文字
+  color:#e0e0e0;
+  text-align: left;     // 左詰め
+  align-items: flex-start;
+}
+.office-form input[type="text"],
+.office-form input[type="email"],
+.office-form input[type="password"] {
+  background:#0f0f12;
+  color:#e6e6e6;
+  border:2px solid rgba(255,255,255,.22);
+  border-radius:8px;
+  padding:8px 10px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.office-form input[type="text"]:focus,
+.office-form input[type="email"]:focus,
+.office-form input[type="password"]:focus {
+  border-color:#7f82ff;
+  box-shadow: 0 0 0 2px rgba(127,130,255,.25);
+  outline: none;
+}
+.input-error { border-color: #e57373 !important; box-shadow: 0 0 0 1px rgba(229,115,115,.4); }
+.error-text { color:#f28b82; font-size:12px; }
+.office-form .checkbox { flex-direction: row; align-items: center; gap: 8px; }
+.divider { height:1px; background: rgba(255,255,255,.08); margin: 10px 0; }
+.staff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 700px) { .staff-grid { grid-template-columns: 1fr; } }
+
+.chart-card { background:#141417; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px 16px; margin-top:16px; }
+.chart-title { color:#b9b9b9; font-size:13px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.chart-body { width:100%; height:260px; }
+
+.chart-switch { display:flex; gap:6px; }
+.year-select {
+  padding:6px 8px;
+  font-size:12px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.12);
+  background:#141417;
+  color:#e6e6e6;
+}
+.switch-btn {
+  padding:6px 10px;
+  font-size:12px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.12);
+  background: transparent;
+  color:#e6e6e6;
+  cursor:pointer;
+}
+.switch-btn.active { background:#2a2a2f; border-color: rgba(127,130,255,.7); }
+.switch-btn:hover { background: rgba(255,255,255,.06); }
+
+.logout-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Offices table & tabs */
+.tabs { display:flex; gap:8px; margin: 8px 0; }
+.tab-btn { padding:6px 10px; font-size:12px; border-radius:8px; border:1px solid rgba(255,255,255,.12); background:transparent; color:#e6e6e6; cursor:pointer; }
+.tab-btn.active { background:#2a2a2f; border-color: rgba(127,130,255,.7); }
+.office-list { overflow:auto; }
+.office-table { width:100%; border-collapse: collapse; }
+.office-table th, .office-table td { border-bottom:1px solid rgba(255,255,255,.08); padding:8px; text-align:left; font-size:13px; }
+.office-table tr { cursor: pointer; }
+.office-table tr:hover { background: rgba(255,255,255,.04); }
+
+/* Simple modal */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.6); display:flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal { background:#141417; border:1px solid rgba(255,255,255,.12); border-radius:12px; width: min(640px, 92vw); padding:16px; }
+.modal-header { font-weight:700; margin-bottom:8px; display:flex; justify-content: space-between; align-items:center; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+/* two-column layout for add form */
+.two-col { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) { .two-col { grid-template-columns: 1.2fr 1fr; } }
+.office-mini-list { margin: 8px 0 0; padding-left: 16px; }
+.office-mini-list li { margin: 4px 0; }
+.preview-box { border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:10px; background:#0f0f12; }
+
+/* -------- Light Theme Overrides -------- */
+/* .admin-layout要素自体にtheme-lightクラスを追加する方式に変更 */
+.admin-layout.theme-light { background:#f5f6f8; color:#111; }
+.admin-layout.theme-light .admin-sidebar { background:#ffffff; border-right:1px solid #e5e7eb; }
+.admin-layout.theme-light .sidebar-footer { background:#ffffff; border-top:1px solid #e5e7eb; }
+.admin-layout.theme-light .sidebar-header { color:#111; }
+.admin-layout.theme-light .nav-item { color:#111; }
+.admin-layout.theme-light .nav-item:hover { background: rgba(0,0,0,.06); }
+.admin-layout.theme-light .year-select { background:#ffffff; color:#111; border:1px solid #e5e7eb; }
+.admin-layout.theme-light .switch-btn { color:#111; border-color:#e5e7eb; }
+.admin-layout.theme-light .switch-btn.active { background:#e8eaf6; border-color:#c7cbe6; }
+.admin-layout.theme-light .card, .admin-layout.theme-light .chart-card, .admin-layout.theme-light .preview-card, .admin-layout.theme-light .modal { background:#ffffff; border:1px solid #e5e7eb; color:#111; }
+.admin-layout.theme-light .chart-title, .admin-layout.theme-light .card-title { color:#333; }
+.admin-layout.theme-light .office-form label { color:#222; }
+.admin-layout.theme-light .office-table th, .admin-layout.theme-light .office-table td { border-bottom:1px solid #e5e7eb; color:#111; }
+.admin-layout.theme-light .preview-box { background:#ffffff; border:1px solid #e5e7eb; }
+.admin-layout.theme-light .top-loader::before { box-shadow: 0 0 10px rgba(64,224,255,.45); }
+.admin-layout.theme-light .input-error { border-color:#ef4444 !important; }
+.admin-layout.theme-light .error-text { color:#ef4444; }
+/* Light theme tabs */
+.admin-layout.theme-light .tab-btn { background:#f3f4f6; color:#374151; border-color:#cbd5e1; }
+.admin-layout.theme-light .tab-btn:hover { background:#e5e7eb; }
+.admin-layout.theme-light .tab-btn.active { background:#111; color:#fff; border-color:#111; }
+/* Light theme: inputs readable */
+.admin-layout.theme-light .office-form input[type="text"],
+.admin-layout.theme-light .office-form input[type="email"],
+.admin-layout.theme-light .office-form input[type="password"] {
+  background:#ffffff;
+  color:#111;
+  border:2px solid #cbd5e1; /* slate-300 */
+}
+.admin-layout.theme-light .office-form input[type="text"]:focus,
+.admin-layout.theme-light .office-form input[type="email"]:focus,
+.admin-layout.theme-light .office-form input[type="password"]:focus {
+  border-color:#7f82ff;
+  box-shadow: 0 0 0 2px rgba(127,130,255,.25);
+}
+.admin-layout.theme-light .year-select { border:2px solid #cbd5e1; }
+.year-select:focus { outline:none; }
+.admin-layout.theme-light .office-form input::placeholder { color:#9aa0a6; }
+
+

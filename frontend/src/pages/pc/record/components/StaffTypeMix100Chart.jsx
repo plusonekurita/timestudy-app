@@ -20,11 +20,18 @@ import {
 import React, { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
+import ZeroHidingTooltip from "./ZeroHidingTooltip";
+// 業務タイプ定義（3種：breakはotherに統合）
+const TYPE_KEYS = Object.freeze([
+  "directCare",
+  "indirectWork",
+  "other",
+]);
 
 import { menuCategories } from "../../../../constants/menu";
 
 // このファイルはコンポーネントのみを default export（Fast Refresh 対応）
-export default function StaffTypeMix100Chart({ height = 420 }) {
+export default function StaffTypeMix100Chart() {
   const theme = useTheme();
   const {
     officeRecords = [],
@@ -36,9 +43,6 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
   const isOffice =
     (officeRecords && officeRecords.length > 0) ||
     (groupedByStaff && Object.keys(groupedByStaff || {}).length > 0);
-
-  // ---- 業務タイプ定義（固定4種） & menuCategories から色/ラベルを取り出す ----
-  const TYPE_KEYS = ["directCare", "indirectWork", "break", "other"];
 
   const TYPE_META = useMemo(() => {
     const metaFromMenu = Object.fromEntries(
@@ -59,10 +63,6 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
       indirectWork: metaFromMenu.indirectWork || {
         label: "間接業務",
         color: theme.palette.success.main,
-      },
-      break: metaFromMenu.break || {
-        label: "休憩・待機・仮眠",
-        color: theme.palette.warning.main,
       },
       other: metaFromMenu.other || {
         label: "その他",
@@ -97,12 +97,14 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
       const recs = isOffice ? groupedByStaff[String(sid)] || [] : record || [];
 
       // タイプ別合計（分）
-      const mins = { directCare: 0, indirectWork: 0, break: 0, other: 0 };
+      const mins = { directCare: 0, indirectWork: 0, other: 0 };
       let totalMin = 0;
 
       recs.forEach((r) => {
         (Array.isArray(r.record) ? r.record : []).forEach((it) => {
-          const key = TYPE_KEYS.includes(it?.type) ? it.type : "other";
+          // breakをotherに統合
+          const type = it?.type === "break" ? "other" : it?.type;
+          const key = TYPE_KEYS.includes(type) ? type : "other";
           const sec =
             typeof it?.duration === "number"
               ? it.duration
@@ -139,7 +141,7 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
   }, [isOffice, staffMeta, groupedByStaff, record]);
 
   // 並び替え（合計時間 / 直接介護比率 / 名前）
-  const [sortKey, setSortKey] = useState("total");
+  const [sortKey] = useState("total");
   const sortedRows = useMemo(() => {
     const arr = [...dataRows];
     if (sortKey === "total") arr.sort((a, b) => b.__totalMin - a.__totalMin);
@@ -150,11 +152,15 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
     return arr;
   }, [dataRows, sortKey]);
 
-  if (!sortedRows.length) {
+  // データが存在しない、またはすべての値が0の場合は「データがありません」を表示
+  const hasData =
+    sortedRows.length > 0 && sortedRows.some((row) => row.__totalMin > 0);
+
+  if (!hasData) {
     return (
       <Box sx={{ py: 6, textAlign: "center" }}>
         <Typography variant="body1" color="text.secondary">
-          データがありません。日付範囲と職員（全員）を選択してください。
+          データがありません。日付と職員を選択してください。
         </Typography>
       </Box>
     );
@@ -200,12 +206,12 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
   };
 
   return (
-    <Box sx={{ width: "100%", height }}>
+    <Box sx={{ width: "100%", height: "452px" }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={sortedRows}
           layout="vertical"
-          margin={{ top: 8, right: 24, bottom: 8, left: 8 }}
+          margin={{ top: 8, right: 24, bottom: 8, left: 50 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
@@ -215,7 +221,15 @@ export default function StaffTypeMix100Chart({ height = 420 }) {
             tickFormatter={(v) => `${Math.round(v)}%`}
           />
           <YAxis type="category" dataKey="staffName" width={50} />
-          <Tooltip content={<TooltipBox />} />
+          <Tooltip
+            content={
+              <ZeroHidingTooltip
+                min={0.05}
+                displayOf={(name) => TYPE_META[name]?.label || name}
+                valueFormatter={(v) => `${v.toFixed(1)}%`}
+              />
+            }
+          />
           <Legend />
           {/* dataKey はタイプ名、凡例名・色は menu.jsx 由来 */}
           {TYPE_KEYS.map((k) => (

@@ -169,23 +169,25 @@ const getGraphColorByName = (name, type) =>
   graphColors.default;
 
 /**
- * 引数は高さのみ。データは Redux の record から取得し、
- * 全レコード分の item をフラットにして元のロジックに渡す。
+ * 引数は高さのみ。データは Redux の groupedByStaff から取得し、
+ * 全スタッフ分の item をフラットにして元のロジックに渡す。
  * （見た目・挙動は元コードから一切変更なし）
  */
-export default function HourStackedGraph({ height = 380 }) {
-  const { record = [] } = useSelector((s) => s.timeRecord || {});
+export default function HourStackedGraph() {
+  const { groupedByStaff = {} } = useSelector((s) => s.timeRecord || {});
 
-  // record: Array<recordItem>
-  // recordItem.record: Array<item({ name,label?,type,startTime,endTime,... })>
+  // groupedByStaff: { [staffId]: Array<staffRecord> }
+  // staffRecord.record: Array<item({ name,label?,type,startTime,endTime,... })>
   const records = useMemo(() => {
     const all = [];
-    (record || []).forEach((recordItem) => {
-      const items = Array.isArray(recordItem?.record) ? recordItem.record : [];
-      items.forEach((it) => all.push(it));
+    Object.values(groupedByStaff || {}).forEach((staffRecs) => {
+      (staffRecs || []).forEach((sr) => {
+        const items = Array.isArray(sr?.record) ? sr.record : [];
+        items.forEach((it) => all.push(it));
+      });
     });
     return all;
-  }, [record]);
+  }, [groupedByStaff]);
 
   // グラフ用データ
   const { data, keys } = useMemo(
@@ -215,7 +217,7 @@ export default function HourStackedGraph({ height = 380 }) {
   const yMaxMinutes = 60; // 元の既定値を維持
 
   return (
-    <Box sx={{ width: "100%", height }}>
+    <Box sx={{ width: "100%", height: "451px" }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />

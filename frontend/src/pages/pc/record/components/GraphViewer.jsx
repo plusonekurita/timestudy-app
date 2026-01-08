@@ -5,6 +5,8 @@ import React from "react";
 import DailyCategoryStackedChart from "./DailyCategoryStackedChart";
 import StaffCategory100Chart from "./StaffCategory100Chart";
 import StaffTypeMix100Chart from "./StaffTypeMix100Chart";
+import HourStackedGraph from "./HourStackedGraph";
+import HourCategoryHeatmap from "./HourCategoryHeatmap";
 
 function ComingSoon({ title }) {
   return (
@@ -19,19 +21,22 @@ function ComingSoon({ title }) {
   );
 }
 
-export default function GraphViewer({ type, height = 460 }) {
+export default function GraphViewer({ type }) {
   switch (type) {
     case "dailyCategoryStacked":
-      return <DailyCategoryStackedChart height={height} />;
+      return <DailyCategoryStackedChart />;
 
     case "staffType100":
-      return <StaffTypeMix100Chart height={height} />; // ← 追加
+      return <StaffTypeMix100Chart />; // ← 追加
 
     case "staffCategory100":
-      return <StaffCategory100Chart height={height} />;
+      return <StaffCategory100Chart />;
+
+    case "hourStacked": // 一般職員用・時間帯×積み上げ
+      return <HourStackedGraph />;
 
     case "hourCategoryHeatmap":
-      return <ComingSoon title="時間帯×カテゴリ（ヒートマップ）" />;
+      return <HourCategoryHeatmap />;
 
     case "paretoCategory":
       return <ComingSoon title="カテゴリ別パレート" />;

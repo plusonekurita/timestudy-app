@@ -1,10 +1,20 @@
-import { ResponsiveContainer, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, } from "recharts";
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 import { Box, Typography, useTheme } from "@mui/material";
 import { useSelector } from "react-redux";
 // src/components/Charts/DailyCategoryStackedChart.jsx
 import React, { useMemo } from "react";
 import dayjs from "dayjs";
-
+import { menuCategories } from "../../../../constants/menu";
+import ZeroHidingTooltip from "./ZeroHidingTooltip";
 
 /** 既知カテゴリの色（足りない分はテーマ色で埋めます） */
 const PRESET_COLORS = {
@@ -38,7 +48,7 @@ function pickLabel(it) {
   return it?.label || it?.name || it?.type || "その他";
 }
 
-export default function DailyCategoryStackedChart({ height = 820 }) {
+export default function DailyCategoryStackedChart() {
   const theme = useTheme();
   // Redux からデータを取得
   const { officeRecords = [], record = [] } = useSelector(
@@ -46,10 +56,13 @@ export default function DailyCategoryStackedChart({ height = 820 }) {
   );
 
   // データ源を決定（全員取得があればそれを優先。無ければ個人の配列）
-  const source = (officeRecords?.length ? officeRecords : record) || [];
+  const source = useMemo(
+    () => (officeRecords?.length ? officeRecords : record) || [],
+    [officeRecords, record]
+  );
 
   // 変換：日付(YYYY-MM-DD) × カテゴリ の合計（分）
-  const { chartData, categories, totals } = useMemo(() => {
+  const { chartData, categories } = useMemo(() => {
     const byDay = new Map(); // key: 'YYYY-MM-DD' -> obj { date, catA: xx, catB: yy, total: zz }
     const cats = new Set();
 
@@ -73,29 +86,46 @@ export default function DailyCategoryStackedChart({ height = 820 }) {
     const data = Array.from(byDay.values()).sort((a, b) =>
       a.date.localeCompare(b.date)
     );
-    const totals = data.map((r) => r.total || 0);
-    return { chartData: data, categories: Array.from(cats), totals };
+    return { chartData: data, categories: Array.from(cats) };
   }, [source]);
 
   // カラー割当（足りない分はテーマ色とグレー系で循環）
-  const dynamicPalette = [
-    theme.palette.primary.main,
-    theme.palette.secondary?.main || "#7b1fa2",
-    theme.palette.success.main,
-    theme.palette.warning.main,
-    theme.palette.info.main,
-    "#546e7a",
-    "#ef6c00",
-    "#00897b",
-    "#3949ab",
-  ];
+  const dynamicPalette = useMemo(
+    () => [
+      theme.palette.primary.main,
+      theme.palette.secondary?.main || "#7b1fa2",
+      theme.palette.success.main,
+      theme.palette.warning.main,
+      theme.palette.info.main,
+      "#546e7a",
+      "#ef6c00",
+      "#00897b",
+      "#3949ab",
+    ],
+    [theme.palette]
+  );
+  // メニュー定義から「項目ラベル → グラフカラー」のマップを作成
+  const MENU_COLOR_MAP = useMemo(() => {
+    const map = {};
+    (menuCategories || []).forEach((cat) => {
+      (cat?.items || []).forEach((it) => {
+        if (it?.label && it?.graphColor) {
+          map[it.label] = it.graphColor;
+        }
+      });
+    });
+    return map;
+  }, []);
   const colorMap = useMemo(() => {
     const map = {};
     categories.forEach((c, i) => {
-      map[c] = PRESET_COLORS[c] || dynamicPalette[i % dynamicPalette.length];
+      map[c] =
+        MENU_COLOR_MAP[c] ||
+        PRESET_COLORS[c] ||
+        dynamicPalette[i % dynamicPalette.length];
     });
     return map;
-  }, [categories]);
+  }, [categories, MENU_COLOR_MAP, dynamicPalette]);
 
   if (!source.length) {
     return (
@@ -108,11 +138,11 @@ export default function DailyCategoryStackedChart({ height = 820 }) {
   }
 
   return (
-    <Box sx={{ width: "100%", height }}>
+    <Box sx={{ width: "100%", height: "451px" }}>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
           data={chartData}
-          margin={{ top: 16, right: 24, left: 8, bottom: 8 }}
+          margin={{ top: 0, right: 24, left: 8, bottom: 8 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
@@ -131,7 +161,13 @@ export default function DailyCategoryStackedChart({ height = 820 }) {
             width={48}
           />
           <Tooltip
-            formatter={(v) => `${Math.round(v * 10) / 10} 分`}
+            content={
+              <ZeroHidingTooltip
+                min={0.05}
+                valueFormatter={(v) => `${Math.round(v * 10) / 10} 分`}
+                displayOf={(name) => name}
+              />
+            }
             labelFormatter={(d) => dayjs(d).format("YYYY年M月D日")}
           />
           <Legend />

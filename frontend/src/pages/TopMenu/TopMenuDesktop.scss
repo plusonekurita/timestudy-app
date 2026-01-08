@@ -1,10 +1,13 @@
+// PCメニュー画面のスタイル（管理画面のテーマに完全に独立）
 .content {
   min-height: calc(100vh - 24px);
   padding: 24px 48px 24px 48px;
-  background-color: rgb(226, 226, 226);
+  background-color: rgb(226, 226, 226) !important;
 
   &__header {
     text-align: start;
+    // テキストを黒色に固定（管理画面のテーマに影響されないように）
+    color: #000000 !important;
   }
 
   &__button {
@@ -12,20 +15,52 @@
       padding: 15px;
       .card-content {
         gap: 0;
+        // カードコンテンツ内のすべてのテキストを黒色に固定
+        color: #000000 !important;
 
         .card-icon {
           display: flex;
           align-items: center;
           margin-bottom: 6px;
           padding: 0.75rem;
-          color: rgb(93, 93, 93);
-          background-color: rgb(228, 228, 228);
+          background-color: rgb(228, 228, 228) !important; // 通常時はグレー
           border-radius: 9999px;
+          transition: background-color 0.2s ease; // 背景色変更のトランジション
+          
+          svg {
+            color: rgb(93, 93, 93) !important; // 通常時はグレー
+            transition: color 0.2s ease; // 色変更のトランジション
+          }
         }
-        .card-title {
+        .card-title,
+        h3.card-title,
+        h3 {
           margin: 0;
+          // テキストを黒色に固定（管理画面のテーマに影響されないように）
+          color: #000000 !important;
+        }
+      }
+      
+      // ホバー時のみ青い背景に白いアイコン
+      &:hover {
+        .card-content .card-icon {
+          background-color: rgb(51, 124, 219) !important;
+          
+          svg {
+            color: #ffffff !important;
+          }
         }
       }
     }
   }
+  
+  // MUIのTypographyコンポーネントも黒色に固定
+  .MuiTypography-root {
+    color: #000000 !important;
+  }
 }
+
+// 管理画面のテーマがPCメニュー画面に影響しないように、明示的に上書き
+// PCメニュー画面（/menu）のスタイルを管理画面のテーマから完全に独立させる
+// 管理画面のテーマクラス（.admin-layout.theme-light）が存在しても影響を受けないように
+// すべてのスタイルに!importantを付けて確実に上書き

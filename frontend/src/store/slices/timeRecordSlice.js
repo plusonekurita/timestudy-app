@@ -18,23 +18,37 @@ export const fetchTimeRecords = createAsyncThunk(
 export const fetchOfficeTimeRecords = createAsyncThunk(
   "timeRecord/fetchOfficeTimeRecords",
   async (
-    { officeId, startDate, endDate, staffIds = null, includeEmptyStaff = true },
+    {
+      officeId,
+      startDate,
+      endDate,
+      // 新：staff は "all" | number | number[]
+      staff = "all",
+      // 互換：古い呼び出しが staffIds を渡してくる場合の救済
+      staffIds = undefined,
+      includeEmptyStaff = false,
+    },
     { rejectWithValue }
   ) => {
     try {
+      // 互換ロジック：staffIds が来たら優先。無ければ staff を使う。
+      const staffParam = staffIds !== undefined ? staffIds : staff;
+
+      const body = {
+        office_id: officeId,
+        start_date: startDate,
+        ...(endDate ? { end_date: endDate } : {}), // 未指定なら送らない（start=単日扱い）
+        staff: staffParam, // "all" | number | number[]
+        include_empty_staff: !!includeEmptyStaff, // snake_case を送る
+      };
+
       const res = await apiFetch("/get-time-records/by-office", {
         method: "POST",
-        body: {
-          office_id: officeId,
-          start_date: startDate,
-          end_date: endDate, // 単日の時は start==end or end省略でもOK（API側仕様次第）
-          staff_ids: staffIds, // 絞り込みしたいときだけ
-          include_empty_staff: includeEmptyStaff,
-        },
+        body,
       });
       return res;
     } catch (e) {
-      return rejectWithValue(e?.message || "所属全員の記録取得に失敗しました");
+      return rejectWithValue(e?.message || "所属職員の記録取得に失敗しました");
     }
   }
 );
@@ -50,7 +64,16 @@ const timeRecordSlice = createSlice({
     groupedByStaff: {}, // { staffId: [records...] }
     staffMeta: [], // [{id, name}]
   },
-  reducers: {},
+  reducers: {
+    resetTimeRecord: (state) => {
+      state.loading = false;
+      state.error = null;
+      state.record = [];
+      state.officeRecords = [];
+      state.groupedByStaff = {};
+      state.staffMeta = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
       // 職員単体
@@ -85,4 +108,5 @@ const timeRecordSlice = createSlice({
   },
 });
 
+export const { resetTimeRecord } = timeRecordSlice.actions;
 export default timeRecordSlice.reducer;

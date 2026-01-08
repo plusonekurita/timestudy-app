@@ -1,6 +1,4 @@
-import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import StopCircleIcon from "@mui/icons-material/StopCircle";
-import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
@@ -9,6 +7,13 @@ import CloseIcon from "@mui/icons-material/Close";
 import CardHeader from "@mui/material/CardHeader";
 import Card from "@mui/material/Card";
 import Box from "@mui/material/Box";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import { useState } from "react";
 
 import { formatTime } from "../../../../utils/timeUtils";
 
@@ -17,12 +22,23 @@ const StopwatchCard = ({
   icon,
   color,
   elapsedTime,
-  isRunning, // タイマーが実行中かどうかの状態
   onClose,
   onStop, // ストップボタンの関数
-  onPause, // 一時停止ボタンの関数
-  onResume, // 再生ぼたんの関数
 }) => {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  const handleCloseClick = () => {
+    setIsConfirmOpen(true);
+  };
+
+  const handleCancelClose = () => {
+    setIsConfirmOpen(false);
+  };
+
+  const handleConfirmClose = () => {
+    setIsConfirmOpen(false);
+    onClose();
+  };
   return (
     <Card
       sx={{
@@ -63,9 +79,33 @@ const StopwatchCard = ({
           </Box>
         }
         action={
-          <IconButton aria-label="close" onClick={onClose} size="small">
-            <CloseIcon sx={{ color: "white" }} />
-          </IconButton>
+          <>
+            <IconButton
+              aria-label="close"
+              onClick={handleCloseClick}
+              size="small"
+            >
+              <CloseIcon sx={{ color: "white" }} />
+            </IconButton>
+            <Dialog open={isConfirmOpen} onClose={handleCancelClose}>
+              <DialogTitle>確認</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  現在計測中のタイマーを削除します。よろしいですか？
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCancelClose}>キャンセル</Button>
+                <Button
+                  color="primary"
+                  variant="contained"
+                  onClick={handleConfirmClose}
+                >
+                  削除
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </>
         }
         sx={{
           pb: 1,
@@ -91,29 +131,15 @@ const StopwatchCard = ({
           </Typography>
         </Box>
 
-        {/* 一時停止・再生ボタン */}
-        <Box>
-          <IconButton
-            aria-label={isRunning ? "pause" : "resume"}
-            onClick={isRunning ? onPause : onResume} // 状態に応じてハンドラを切り替え
-            color="primary"
-            sx={{ padding: 0 }}
-          >
-            {isRunning ? (
-              <PauseCircleIcon fontSize="large" sx={{ fontSize: "55px" }} />
-            ) : (
-              <PlayCircleIcon fontSize="large" />
-            )}
-          </IconButton>
-          <IconButton
-            aria-label="stop"
-            onClick={onStop}
-            color="primary"
-            sx={{ padding: 0 }}
-          >
-            <StopCircleIcon sx={{ fontSize: "55px" }} />
-          </IconButton>
-        </Box>
+        {/* ストップボタン */}
+        <IconButton
+          aria-label="stop"
+          onClick={onStop}
+          color="primary"
+          sx={{ padding: 0 }}
+        >
+          <StopCircleIcon sx={{ fontSize: "55px" }} />
+        </IconButton>
       </CardContent>
     </Card>
   );

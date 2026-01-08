@@ -1,4 +1,9 @@
-import { BottomNavigation, BottomNavigationAction, Drawer, IconButton, } from "@mui/material";
+import {
+  BottomNavigation,
+  BottomNavigationAction,
+  Drawer,
+  IconButton,
+} from "@mui/material";
 // src/components/ProtectedLayout.jsx
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -12,7 +17,6 @@ import LeftDrawerMenu from "./LeftDrawerMenu/LfetDrawerMenu";
 import LoadingOverlay from "./LoadingOverlay";
 import EdgeMenuHandle from "./EdgeMenuHandle";
 import Header from "./Header";
-
 
 const HEADER_HEIGHT = "42px";
 const FOOTER_HEIGHT = "68px";
@@ -46,13 +50,18 @@ const ProtectedLayout = () => {
     navItems.push(...SHEET_NAV);
   }
 
-  const currentIndex = navItems.findIndex((item) =>
-    location.pathname.startsWith(item.path)
-  );
+  // より具体的なパス（長いパス）を優先的にマッチするため、逆順で検索
+  let currentIndex = -1;
+  for (let i = navItems.length - 1; i >= 0; i--) {
+    if (location.pathname.startsWith(navItems[i].path)) {
+      currentIndex = i;
+      break;
+    }
+  }
   const isAdminPage = location.pathname.startsWith("/admin");
   const isMenuPage = location.pathname.startsWith("/menu");
 
-  const drawerVariant = isNarrow ? "temporary" : "persistent";
+  const drawerVariant = isNarrow ? "persistent" : "persistent";
   const showDrawer = !isMobileDevice && !isAdminPage; // スマホ＆管理画面では Drawer 自体を出さない
   const closeDrawer = () => setDrawerOpen(false);
 
@@ -67,10 +76,86 @@ const ProtectedLayout = () => {
     }
   }, [isMobileDevice, isNarrow, isAdminPage]);
 
+  // Drawerの状態変更時にDOMの再描画を促す
+  useEffect(() => {
+    if (!drawerOpen) {
+      // Drawerが閉じた時にpointer-eventsを強制的にリセット
+      const timer = setTimeout(() => {
+        // bodyのpointer-eventsをリセット
+        document.body.style.pointerEvents = "auto";
+        document.body.style.userSelect = "auto";
+
+        // 全ての要素のpointer-eventsをリセット
+        const allElements = document.querySelectorAll("*");
+        allElements.forEach((el) => {
+          if (el.style.pointerEvents === "none") {
+            el.style.pointerEvents = "auto";
+          }
+        });
+
+        // メインコンテンツエリアを明示的に有効化
+        const mainElement = document.querySelector("main");
+        if (mainElement) {
+          mainElement.style.pointerEvents = "auto";
+          mainElement.style.userSelect = "auto";
+        }
+
+        // 全てのボタンとクリック可能要素を有効化
+        const clickableElements = document.querySelectorAll(
+          "button, a, input, select, textarea, [role='button']"
+        );
+        clickableElements.forEach((el) => {
+          el.style.pointerEvents = "auto";
+        });
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [drawerOpen]);
+
+  // 左メニューが開いている時に他の要素をクリックしたら閉じる
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (drawerOpen && isNarrow) {
+        // クリックされた要素がDrawer内でない場合
+        const drawerElement = document.querySelector(".MuiDrawer-paper");
+        const edgeMenuHandle = document.querySelector(
+          '[data-testid="edge-menu-handle"]'
+        );
+
+        // クリックされた要素がDrawer内でもEdgeMenuHandle内でもない場合
+        const isClickInsideDrawer =
+          drawerElement && drawerElement.contains(event.target);
+        const isClickOnEdgeMenuHandle =
+          edgeMenuHandle && edgeMenuHandle.contains(event.target);
+
+        if (!isClickInsideDrawer && !isClickOnEdgeMenuHandle) {
+          setDrawerOpen(false);
+        }
+      }
+    };
+
+    if (drawerOpen && isNarrow) {
+      // 少し遅延を入れて、Drawerのアニメーション完了後にイベントリスナーを追加
+      const timer = setTimeout(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [drawerOpen, isNarrow]);
+
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
-    <Box sx={{ display: "flex", height: "100vh" }}>
+    <Box sx={{ display: "flex", height: "100%" }}>
       {/* ← 既存の「デスクトップ用ドロワー直置き」は削除 */}
 
       {/* 既存のローディング */}
@@ -101,7 +186,13 @@ const ProtectedLayout = () => {
           variant={drawerVariant}
           open={drawerOpen}
           onClose={closeDrawer} // temporary 時に有効
-          ModalProps={{ keepMounted: true }} // パフォーマンス
+          ModalProps={{
+            keepMounted: true,
+            disableEnforceFocus: true,
+            disableAutoFocus: true,
+            disableRestoreFocus: true,
+            disablePortal: true,
+          }} // パフォーマンス
           PaperProps={{
             sx: {
               width: DRAWER_WIDTH,
@@ -138,18 +229,23 @@ const ProtectedLayout = () => {
           pt: isMobileDevice || isAdminPage ? HEADER_HEIGHT : 0,
           pb: !isMobileDevice ? 0 : FOOTER_HEIGHT,
           width: "100%",
+          height: isMobileDevice ? "100vh" : "100%", // スマホでは100vh、PCでは100%
           overflowY: "auto",
           overflowX: "hidden",
+          position: "relative",
+          zIndex: 0,
+          pointerEvents: "auto",
+          userSelect: "auto",
         }}
       >
         <Outlet />
       </Box>
 
       {/* 既存のフッター（条件はそのまま） */}
-      {isMobile && !isAdminPage && !isMenuPage && (
+      {isMobile && !isAdminPage && !isMenuPage && navItems.length > 0 && (
         <BottomNavigation
           showLabels
-          value={currentIndex}
+          value={currentIndex >= 0 ? currentIndex : 0}
           onChange={(_e, newValue) => navigate(navItems[newValue].path)}
           sx={{
             position: "fixed",

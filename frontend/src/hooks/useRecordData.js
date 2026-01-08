@@ -33,8 +33,11 @@ export const useRecordData = (records = [], startDate, endDate) => {
       return;
     }
 
-    // ローカルストレージから当日記録を取得
-    const allDailyRecords = getValue(`dailyTimeStudyRecords_${user.id}`, {});
+    // 表示用ローカルストレージから当日記録を取得
+    const allDailyRecords = getValue(
+      `dailyTimeStudyRecords_display_${user.id}`,
+      {}
+    );
     const isTodaySelected = startKey === todayKey || endKey === todayKey;
     const localRecordObject =
       isTodaySelected && allDailyRecords[todayKey]?.length
@@ -47,7 +50,7 @@ export const useRecordData = (records = [], startDate, endDate) => {
         : [];
 
     // API記録の中から当日以外を抽出
-    const nonTodayRecords = records.filter(
+    const nonTodayRecords = (Array.isArray(records) ? records : []).filter(
       (rec) => rec.record_date !== todayKey
     );
 
@@ -59,7 +62,6 @@ export const useRecordData = (records = [], startDate, endDate) => {
       name: "活動集計",
       directCare: 0,
       indirectWork: 0,
-      break: 0,
       other: 0,
     };
 
@@ -71,8 +73,11 @@ export const useRecordData = (records = [], startDate, endDate) => {
       day.record.forEach((item) => {
         const duration = item.duration;
 
-        if (aggregatedData[item.type] !== undefined) {
-          aggregatedData[item.type] += duration;
+        // breakをotherに統合
+        const type = item.type === "break" ? "other" : item.type;
+
+        if (aggregatedData[type] !== undefined) {
+          aggregatedData[type] += duration;
         } else {
           aggregatedData.other += duration;
         }
@@ -92,7 +97,7 @@ export const useRecordData = (records = [], startDate, endDate) => {
     });
     setChartData([chartFormattedData]);
 
-    const displayOrder = ["directCare", "indirectWork", "break", "other"];
+    const displayOrder = ["directCare", "indirectWork", "other"];
     const totalDuration = displayOrder.reduce(
       (sum, key) => sum + (aggregatedData[key] || 0),
       0

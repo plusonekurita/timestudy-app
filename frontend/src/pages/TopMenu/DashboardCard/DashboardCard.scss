@@ -1,6 +1,7 @@
+// PCメニュー画面のカードスタイル（管理画面のテーマに完全に独立）
 .dashboard-card {
-  background-color: #ffffff;
-  border: 1px solid var(--border-color);
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important; // CSS変数を使わず直接指定
   border-radius: 0.5rem;
   padding: 1.5rem;
   cursor: pointer;
@@ -9,6 +10,15 @@
   &:hover {
     transform: scale(1.02);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    
+    // ホバー時のみ青い背景に白いアイコン
+    .card-icon {
+      background-color: rgb(51, 124, 219) !important;
+    }
+    
+    .card-icon svg {
+      color: #ffffff !important;
+    }
   }
 
   &:active {
@@ -21,22 +31,31 @@
     align-items: center;
     text-align: center;
     gap: 0.75rem;
+    // カードコンテンツ内のすべてのテキストを黒色に固定（管理画面のテーマに影響されないように）
+    color: #000000 !important;
   }
 
   .card-icon {
     padding: 0.75rem;
-    background-color: var(--muted);
+    background-color: #f3f4f6 !important; // 通常時はグレー
     border-radius: 9999px;
+    transition: background-color 0.2s ease; // 背景色変更のトランジション
 
     svg {
       height: 2rem;
       width: 2rem;
-      color: var(--muted-foreground);
+      color: #6b7280 !important; // 通常時はグレー
+      transition: color 0.2s ease; // 色変更のトランジション
     }
   }
 
-  .card-title {
+  // カードタイトルを黒色に固定（管理画面のテーマに影響されないように）
+  .card-title,
+  h3.card-title,
+  h3 {
     font-size: 0.875rem;
     font-weight: 500;
+    color: #000000 !important;
+    margin: 0;
   }
 }
