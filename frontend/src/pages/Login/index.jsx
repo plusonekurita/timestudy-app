@@ -115,11 +115,11 @@ const LoginPage = () => {
           role: "admin",
           version: 1,
         });
-        
+
         // セッション開始時刻を保存
         const { saveSessionStart } = await import("../../utils/sessionManager");
         saveSessionStart();
-        
+
         dispatch(
           showSnackbar({
             message: "管理者としてログインしました",
@@ -217,7 +217,11 @@ const LoginPage = () => {
   return (
     <div className="login-page">
       <LoadingOverlay loading={loading} />
+      <img src="/logo.png" alt="Logo" className="login-brand-logo" />
       <div style={{ width: "100%", maxWidth: "100%" }}>
+        <div className="login-logo-container">
+          <img src="/title.png" alt="Title" className="login-title" />
+        </div>
         <h1>ログイン</h1>
         <LoginForm onSubmitAttempt={handleLoginAttempt} />
         {error && (
@@ -225,6 +229,9 @@ const LoginPage = () => {
             {error}
           </p>
         )}
+      </div>
+      <div className="login-footer">
+        <img src="/logo2.png" alt="Company Logo" className="footer-logo" />
       </div>
     </div>
   );
