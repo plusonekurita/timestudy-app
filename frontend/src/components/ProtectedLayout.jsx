@@ -17,6 +17,7 @@ import LeftDrawerMenu from "./LeftDrawerMenu/LfetDrawerMenu";
 import LoadingOverlay from "./LoadingOverlay";
 import EdgeMenuHandle from "./EdgeMenuHandle";
 import Header from "./Header";
+import HelpButton from "./HelpButton";
 
 const HEADER_HEIGHT = "42px";
 const FOOTER_HEIGHT = "68px";
@@ -238,6 +239,8 @@ const ProtectedLayout = () => {
           userSelect: "auto",
         }}
       >
+        {/* PC画面かつ一般ユーザー（管理画面でない）の場合にヘルプボタンを表示 */}
+        {!isMobileDevice && !isAdminPage && <HelpButton />}
         <Outlet />
       </Box>
 

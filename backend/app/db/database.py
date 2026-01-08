@@ -4,10 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from urllib.parse import urlparse
 
-# 必ず環境変数から取得（ハードコードのデフォルトは廃止）
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL が設定されていません（RenderのDashboardで設定してください）")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:19641010+1@localhost:5433/time_prod")
+print("📡 DATABASE_URL:", DATABASE_URL)
 
 # パスワードは絶対に出さない。ホスト情報だけ軽くログ。
 u = urlparse(DATABASE_URL)
