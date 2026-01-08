@@ -14,6 +14,8 @@ import {
 import {
   Person as PersonIcon,
   Logout as LogoutIcon,
+  HelpOutline as HelpIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
@@ -35,6 +37,7 @@ import { apiFetch } from "../utils/api";
 import { showSnackbar } from "../store/slices/snackbarSlice";
 import { startLoading, stopLoading } from "../store/slices/loadingSlice";
 import { useStopwatchContext } from "../constants/StopwatchProvider";
+import PDFViewer from "./PDFViewer";
 
 // ヘッダーコンポーネント
 const Header = () => {
@@ -42,6 +45,7 @@ const Header = () => {
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const { id, userName } = useSelector((state) => state.auth);
 
   const user = getValue("user");
@@ -100,6 +104,11 @@ const Header = () => {
   const handleLogout = () => {
     performLogout(dispatch); // ログアウト
     handleCloseUserMenu(); // メニューを閉じる
+  };
+
+  const handleHelpOpen = () => {
+    setHelpOpen(true);
+    handleCloseUserMenu();
   };
 
   const handleClickSave = async () => {
@@ -269,6 +278,10 @@ const Header = () => {
               <MenuItem onClick={handleClickSync} disabled={!canSync}>
                 記録同期
               </MenuItem>
+              <MenuItem onClick={handleHelpOpen}>
+                <HelpIcon sx={{ mr: 1 }} />
+                ヘルプ
+              </MenuItem>
               <MenuItem onClick={handleLogout}>
                 <LogoutIcon sx={{ mr: 1 }} />
                 ログアウト
@@ -316,7 +329,40 @@ const Header = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+
+      <Dialog
+        fullScreen
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+      >
+        <AppBar sx={{ position: "relative" }}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => setHelpOpen(false)}
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+              マニュアル
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        <Box
+          sx={{
+            flexGrow: 1,
+            height: "100%",
+            overflow: "auto",
+            WebkitOverflowScrolling: "touch",
+            backgroundColor: "#f5f5f5", // 背景色を薄いグレーに
+          }}
+        >
+          <PDFViewer file="/manual/manual_mobile.pdf" />
+        </Box>
+      </Dialog>
+    </Box >
   );
 };
 

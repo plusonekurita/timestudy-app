@@ -222,7 +222,7 @@ const LoginPage = () => {
         <div className="login-logo-container">
           <img src="/title.png" alt="Title" className="login-title" />
         </div>
-        <h1>ログイン</h1>
+        {/* <h1>ログイン</h1> */}
         <LoginForm onSubmitAttempt={handleLoginAttempt} />
         {error && (
           <p style={{ color: "red", textAlign: "center", marginTop: "16px" }}>
