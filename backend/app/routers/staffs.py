@@ -6,6 +6,7 @@ from passlib.context import CryptContext
 
 from app.db.database import get_db
 from app.models.staffs import Staffs
+from app.models.offices import Offices
 
 router = APIRouter()
 
@@ -76,6 +77,21 @@ def get_staffs_by_office(office_id: int, db: Session = Depends(get_db)):
 )
 def create_staff(office_id: int, payload: StaffCreate, db: Session = Depends(get_db)):
     try:
+        # 事業所情報の取得（上限確認のため）
+        office = db.query(Offices).filter(Offices.id == office_id).first()
+        if not office:
+             raise HTTPException(status_code=404, detail="事業所が見つかりません。")
+
+        # 現在のスタッフ数をカウント
+        current_staff_count = db.query(Staffs).filter(Staffs.office_id == office_id).count()
+        
+        # 上限チェック
+        if current_staff_count >= office.max_staff_count:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"スタッフ登録上限（{office.max_staff_count}名）に達しているため、これ以上登録できません。"
+            )
+
         # 職員コード重複チェック（入力がある場合のみ）
         if payload.staff_code:
             exists_code = (

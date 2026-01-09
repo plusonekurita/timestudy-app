@@ -17,6 +17,7 @@ class Offices(Base):
     address: Mapped[str] = mapped_column(Text, nullable=True)
     phone_number: Mapped[str] = mapped_column(String(20), nullable=True)
     email: Mapped[str] = mapped_column(String(100), nullable=True)
+    max_staff_count: Mapped[int] = mapped_column(Integer, default=50, server_default="50")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
