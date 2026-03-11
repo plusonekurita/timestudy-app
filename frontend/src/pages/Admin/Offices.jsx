@@ -32,6 +32,7 @@ const OfficesPage = () => {
     address: "",
     phone_number: "",
     email: "",
+    max_staff_count: 50,
     is_active: true,
   });
   const [nameError, setNameError] = useState("");
@@ -181,6 +182,7 @@ const OfficesPage = () => {
           address: edit.address,
           phone_number: edit.phone_number,
           email: edit.email,
+          max_staff_count: edit.max_staff_count,
           is_active: !!edit.is_active,
         },
       });
@@ -286,6 +288,7 @@ const OfficesPage = () => {
         address: "",
         phone_number: "",
         email: "",
+        max_staff_count: 50,
         is_active: true,
       });
       setAddManager(false);
@@ -445,7 +448,7 @@ const OfficesPage = () => {
                     </button>
                   </div>
                 </label>
-                <label>
+                <label className="full-width">
                   住所
                   <input
                     type="text"
@@ -480,7 +483,20 @@ const OfficesPage = () => {
                     }
                   />
                 </label>
-                <label className="checkbox">
+                <label>
+                  スタッフ登録上限
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={form.max_staff_count}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, "");
+                      setForm({ ...form, max_staff_count: parseInt(val) || 0 });
+                    }}
+                  />
+                </label>
+                <label className="checkbox full-width">
                   <input
                     type="checkbox"
                     checked={form.is_active}
@@ -491,7 +507,7 @@ const OfficesPage = () => {
                   有効
                 </label>
                 <div className="divider"></div>
-                <label className="checkbox">
+                <label className="checkbox full-width">
                   <input
                     type="checkbox"
                     checked={addManager}
@@ -501,7 +517,7 @@ const OfficesPage = () => {
                 </label>
 
                 {addManager && (
-                  <div className="staff-form">
+                  <div className="staff-form full-width">
                     <div className="staff-grid">
                       <label>
                         ログインID（必須）
@@ -601,7 +617,7 @@ const OfficesPage = () => {
                     </div>
                   </div>
                 )}
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="full-width" style={{ display: "flex", gap: 8 }}>
                   <button
                     type="submit"
                     className="switch-btn active"
@@ -620,6 +636,7 @@ const OfficesPage = () => {
                         address: "",
                         phone_number: "",
                         email: "",
+                        max_staff_count: 50,
                         is_active: true,
                       });
                       setNameError("");
@@ -665,6 +682,9 @@ const OfficesPage = () => {
                 </div>
                 <div>
                   <strong>メール:</strong> {form.email || "-"}
+                </div>
+                <div>
+                  <strong>スタッフ登録上限:</strong> {form.max_staff_count || "-"}
                 </div>
                 <div>
                   <strong>状態:</strong> {form.is_active ? "有効" : "無効"}
@@ -795,7 +815,7 @@ const OfficesPage = () => {
                     </button>
                   </div>
                 </label>
-                <label>
+                <label className="full-width">
                   住所
                   <input
                     type="text"
@@ -830,7 +850,20 @@ const OfficesPage = () => {
                     }
                   />
                 </label>
-                <label className="checkbox">
+                <label>
+                  スタッフ登録上限
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={edit.max_staff_count || ""}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, "");
+                      setEdit({ ...edit, max_staff_count: parseInt(val) || 0 });
+                    }}
+                  />
+                </label>
+                <label className="checkbox full-width">
                   <input
                     type="checkbox"
                     checked={!!edit.is_active}
@@ -840,7 +873,7 @@ const OfficesPage = () => {
                   />
                   有効
                 </label>
-                <div className="modal-actions">
+                <div className="modal-actions full-width">
                   <button
                     type="button"
                     className="switch-btn"

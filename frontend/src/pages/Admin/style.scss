@@ -180,9 +180,18 @@
 
 .office-form {
   display: grid;
-  grid-template-columns: 1fr; // 項目ごとに改行
+  grid-template-columns: 1fr;
   gap: 12px;
   margin-top: 12px;
+}
+@media (min-width: 600px) {
+  .office-form {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .full-width {
+    grid-column: 1 / -1;
+  }
 }
 .office-form label {
   display: flex;
@@ -196,7 +205,8 @@
 }
 .office-form input[type="text"],
 .office-form input[type="email"],
-.office-form input[type="password"] {
+.office-form input[type="password"],
+.office-form input[type="number"] {
   background:#0f0f12;
   color:#e6e6e6;
   border:2px solid rgba(255,255,255,.22);
@@ -206,7 +216,8 @@
 }
 .office-form input[type="text"]:focus,
 .office-form input[type="email"]:focus,
-.office-form input[type="password"]:focus {
+.office-form input[type="password"]:focus,
+.office-form input[type="number"]:focus {
   border-color:#7f82ff;
   box-shadow: 0 0 0 2px rgba(127,130,255,.25);
   outline: none;
@@ -214,7 +225,7 @@
 .input-error { border-color: #e57373 !important; box-shadow: 0 0 0 1px rgba(229,115,115,.4); }
 .error-text { color:#f28b82; font-size:12px; }
 .office-form .checkbox { flex-direction: row; align-items: center; gap: 8px; }
-.divider { height:1px; background: rgba(255,255,255,.08); margin: 10px 0; }
+.divider { height:1px; background: rgba(255,255,255,.08); margin: 10px 0; grid-column: 1 / -1; }
 .staff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 @media (max-width: 700px) { .staff-grid { grid-template-columns: 1fr; } }
 
@@ -305,14 +316,16 @@
 /* Light theme: inputs readable */
 .admin-layout.theme-light .office-form input[type="text"],
 .admin-layout.theme-light .office-form input[type="email"],
-.admin-layout.theme-light .office-form input[type="password"] {
+.admin-layout.theme-light .office-form input[type="password"],
+.admin-layout.theme-light .office-form input[type="number"] {
   background:#ffffff;
   color:#111;
   border:2px solid #cbd5e1; /* slate-300 */
 }
 .admin-layout.theme-light .office-form input[type="text"]:focus,
 .admin-layout.theme-light .office-form input[type="email"]:focus,
-.admin-layout.theme-light .office-form input[type="password"]:focus {
+.admin-layout.theme-light .office-form input[type="password"]:focus,
+.admin-layout.theme-light .office-form input[type="number"]:focus {
   border-color:#7f82ff;
   box-shadow: 0 0 0 2px rgba(127,130,255,.25);
 }
