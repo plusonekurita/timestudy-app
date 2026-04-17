@@ -6,6 +6,7 @@ import { apiFetch } from "../../utils/api";
 import { showSnackbar } from "../../store/slices/snackbarSlice";
 import { performLogout } from "../../utils/auth";
 import { Home, Dashboard, PersonAddAlt1, Logout, AddBusiness, LightMode, DarkMode, Visibility, VisibilityOff } from "@mui/icons-material";
+import { Popover } from "@mui/material";
 import "./style.scss";
 
 const StaffsPage = () => {
@@ -44,6 +45,8 @@ const StaffsPage = () => {
   const [edit, setEdit] = useState(null);
   const [showPassword, setShowPassword] = useState(true);
   const [showEditPassword, setShowEditPassword] = useState(true);
+  const [deleteAnchorEl, setDeleteAnchorEl] = useState(null);
+  const [deleteStaffId, setDeleteStaffId] = useState(null);
 
   const [form, setForm] = useState({
     office_id: "",
@@ -146,6 +149,36 @@ const StaffsPage = () => {
     } catch (err) {
       dispatch(showSnackbar({ message: err.message || "更新に失敗しました", severity: "error" }));
     } finally { setLoading(false); setTimeout(() => setShowLoader(false), 600); }
+  };
+
+  const handleDeleteClick = (e, staffId) => {
+    e.stopPropagation();
+    setDeleteAnchorEl(e.currentTarget);
+    setDeleteStaffId(staffId);
+  };
+
+  const handleDeleteClose = (e) => {
+    if (e) e.stopPropagation();
+    setDeleteAnchorEl(null);
+    setDeleteStaffId(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteStaffId) return;
+    try {
+      setLoading(true); setShowLoader(true);
+      await apiFetch(`/offices/${selectedOfficeId}/staffs/${deleteStaffId}`, {
+        method: "DELETE",
+      });
+      dispatch(showSnackbar({ message: "削除しました", severity: "success" }));
+      await fetchStaffsByOffice(selectedOfficeId);
+    } catch (err) {
+      dispatch(showSnackbar({ message: err.message || "削除に失敗しました", severity: "error" }));
+    } finally { 
+      setLoading(false); 
+      handleDeleteClose();
+      setTimeout(() => setShowLoader(false), 600); 
+    }
   };
 
   return (
@@ -265,8 +298,9 @@ const StaffsPage = () => {
                         <td>{s.login_id}</td>
                         <td>{s.job || "-"}</td>
                         <td>{s.is_active ? "有効" : "無効"}</td>
-                        <td>
+                        <td style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                           <button className="switch-btn" onClick={(e) => { e.stopPropagation(); setEdit({ ...s }); setShowEdit(true); }}>編集</button>
+                          <button className="switch-btn" style={{ background: "#d32f2f", color: "white", borderColor: "#d32f2f" }} onClick={(e) => handleDeleteClick(e, s.id)}>削除</button>
                         </td>
                       </tr>
                     ))}
@@ -278,6 +312,30 @@ const StaffsPage = () => {
             </div>
           </div>
         )}
+
+        <Popover
+          open={Boolean(deleteAnchorEl)}
+          anchorEl={deleteAnchorEl}
+          onClose={handleDeleteClose}
+          onClick={(e) => e.stopPropagation()}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          slotProps={{ paper: { sx: { background: "var(--bg-color, #fff)", color: "var(--text-color, #333)", border: "1px solid var(--border-color, #ccc)" } } }}
+        >
+          <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+            <span style={{ fontSize: "0.95rem", fontWeight: "bold" }}>このスタッフを削除しますか？</span>
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button className="switch-btn" onClick={handleDeleteClose}>キャンセル</button>
+              <button className="switch-btn" style={{ background: "#d32f2f", color: "white", borderColor: "#d32f2f" }} onClick={(e) => { e.stopPropagation(); handleDelete(); }}>削除する</button>
+            </div>
+          </div>
+        </Popover>
 
         {showEdit && edit && (
           <div className="modal-backdrop" onClick={() => setShowEdit(false)}>

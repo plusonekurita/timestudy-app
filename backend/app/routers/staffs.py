@@ -49,10 +49,7 @@ class StaffUpdate(BaseModel):
     is_admin: bool = False
     password: Optional[str] = None  # 任意でパスワード更新
 
-# スタッフ削除
-class StaffDelete(BaseModel):
-    id: int = Field(..., description="削除対象スタッフのID")
-    staff_code: str = Field(..., min_length=1, description="削除対象スタッフの職員コード")
+# スタッフ削除のエンドポイントでパスパラメータを使用するためモデルは不要
 
 
 @router.get("/offices/{office_id}/staffs", response_model=List[StaffResponse])
@@ -194,18 +191,17 @@ def update_staff(office_id: int, staff_id: int, payload: StaffUpdate, db: Sessio
 
 
 # スタッフ削除
-@router.delete("/offices/{office_id}/staffs",status_code=status.HTTP_204_NO_CONTENT)
-def delete_staff(office_id: int, payload: StaffDelete, db: Session = Depends(get_db)):
+@router.delete("/offices/{office_id}/staffs/{staff_id}",status_code=status.HTTP_204_NO_CONTENT)
+def delete_staff(office_id: int, staff_id: int, db: Session = Depends(get_db)):
     """
-    office_id（パス）と、body の id / staff_code が一致するレコードのみ削除。
+    office_id と staff_id が一致するレコードを削除。
     """
     try:
         target = (
             db.query(Staffs)
             .filter(
                 Staffs.office_id == office_id,
-                Staffs.id == payload.id,
-                Staffs.staff_code == payload.staff_code,
+                Staffs.id == staff_id,
             )
             .first()
         )
