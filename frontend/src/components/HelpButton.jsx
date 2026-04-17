@@ -5,8 +5,7 @@ import { colors } from "../constants/theme";
 
 const HelpButton = () => {
     const handleClick = () => {
-        // パスの先頭に / を付けてルートから参照するように明示
-        window.open("/manual/manual_pc.pdf", "_blank");
+        window.open("https://plus1jp.com/manual/ts/", "_blank");
     };
 
     return (

@@ -20,6 +20,7 @@ const AddOfficePage = () => {
     address: "",
     phone_number: "",
     email: "",
+    max_staff_count: 50,
     is_active: true,
   });
   const [nameError, setNameError] = useState("");
@@ -259,7 +260,7 @@ const AddOfficePage = () => {
                 </button>
               </div>
             </label>
-            <label>
+            <label className="full-width">
               住所
               <input
                 type="text"
@@ -285,7 +286,20 @@ const AddOfficePage = () => {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
             </label>
-            <label className="checkbox">
+            <label>
+              スタッフ登録上限
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={form.max_staff_count}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  setForm({ ...form, max_staff_count: parseInt(val) || 0 });
+                }}
+              />
+            </label>
+            <label className="checkbox full-width">
               <input
                 type="checkbox"
                 checked={form.is_active}
@@ -293,7 +307,7 @@ const AddOfficePage = () => {
               />
               有効
             </label>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="full-width" style={{ display: "flex", gap: 8 }}>
               <button type="submit" className="switch-btn active" disabled={loading}>
                 保存
               </button>

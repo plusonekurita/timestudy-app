@@ -231,7 +231,7 @@ const LoginPage = () => {
         )}
       </div>
       <div className="login-footer">
-        <img src="/logo2.png" alt="Company Logo" className="footer-logo" />
+        <span>株式会社プラスワン</span>
       </div>
     </div>
   );

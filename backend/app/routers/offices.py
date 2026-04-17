@@ -23,6 +23,7 @@ class OfficeResponse(BaseModel):
     address: str | None = None
     phone_number: str | None = None
     email: str | None = None
+    max_staff_count: int
     is_active: bool
     created_at: datetime
 
@@ -59,6 +60,7 @@ class OfficeCreate(BaseModel):
     address: str | None = None
     phone_number: str | None = None
     email: str | None = None
+    max_staff_count: int = 50
     is_active: bool = True
 
 
@@ -72,6 +74,7 @@ def create_office(payload: OfficeCreate, db: Session = Depends(get_db)):
             address=payload.address,
             phone_number=payload.phone_number,
             email=payload.email,
+            max_staff_count=payload.max_staff_count,
             is_active=payload.is_active,
         )
         db.add(office)
@@ -104,6 +107,7 @@ class OfficeCreateWithStaff(BaseModel):
     address: str | None = None
     phone_number: str | None = None
     email: str | None = None
+    max_staff_count: int = 50
     is_active: bool = True
     # スタッフ情報（オプション）
     staff: Optional[StaffCreateForOffice] = None
@@ -116,6 +120,7 @@ class OfficeUpdate(BaseModel):
     address: str | None = None
     phone_number: str | None = None
     email: str | None = None
+    max_staff_count: int = 50
     is_active: bool = True
 
 
@@ -134,6 +139,7 @@ def create_office_with_staff(payload: OfficeCreateWithStaff, db: Session = Depen
             address=payload.address,
             phone_number=payload.phone_number,
             email=payload.email,
+            max_staff_count=payload.max_staff_count,
             is_active=payload.is_active,
         )
         db.add(office)
@@ -203,6 +209,7 @@ def update_office(office_id: int, payload: OfficeUpdate, db: Session = Depends(g
         office.address = payload.address
         office.phone_number = payload.phone_number
         office.email = payload.email
+        office.max_staff_count = payload.max_staff_count
         office.is_active = payload.is_active
         db.commit()
         db.refresh(office)

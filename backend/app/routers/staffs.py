@@ -6,6 +6,7 @@ from passlib.context import CryptContext
 
 from app.db.database import get_db
 from app.models.staffs import Staffs
+from app.models.offices import Offices
 
 router = APIRouter()
 
@@ -27,6 +28,7 @@ class StaffCreate(BaseModel):
 class StaffResponse(BaseModel):
     id: int
     name: str
+    login_id: str
     staff_code: Optional[str]
     is_active: bool
     is_admin: bool
@@ -47,10 +49,7 @@ class StaffUpdate(BaseModel):
     is_admin: bool = False
     password: Optional[str] = None  # 任意でパスワード更新
 
-# スタッフ削除
-class StaffDelete(BaseModel):
-    id: int = Field(..., description="削除対象スタッフのID")
-    staff_code: str = Field(..., min_length=1, description="削除対象スタッフの職員コード")
+# スタッフ削除のエンドポイントでパスパラメータを使用するためモデルは不要
 
 
 @router.get("/offices/{office_id}/staffs", response_model=List[StaffResponse])
@@ -76,6 +75,21 @@ def get_staffs_by_office(office_id: int, db: Session = Depends(get_db)):
 )
 def create_staff(office_id: int, payload: StaffCreate, db: Session = Depends(get_db)):
     try:
+        # 事業所情報の取得（上限確認のため）
+        office = db.query(Offices).filter(Offices.id == office_id).first()
+        if not office:
+             raise HTTPException(status_code=404, detail="事業所が見つかりません。")
+
+        # 現在のスタッフ数をカウント
+        current_staff_count = db.query(Staffs).filter(Staffs.office_id == office_id).count()
+        
+        # 上限チェック
+        if current_staff_count >= office.max_staff_count:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"スタッフ登録上限（{office.max_staff_count}名）に達しているため、これ以上登録できません。"
+            )
+
         # 職員コード重複チェック（入力がある場合のみ）
         if payload.staff_code:
             exists_code = (
@@ -177,18 +191,17 @@ def update_staff(office_id: int, staff_id: int, payload: StaffUpdate, db: Sessio
 
 
 # スタッフ削除
-@router.delete("/offices/{office_id}/staffs",status_code=status.HTTP_204_NO_CONTENT)
-def delete_staff(office_id: int, payload: StaffDelete, db: Session = Depends(get_db)):
+@router.delete("/offices/{office_id}/staffs/{staff_id}",status_code=status.HTTP_204_NO_CONTENT)
+def delete_staff(office_id: int, staff_id: int, db: Session = Depends(get_db)):
     """
-    office_id（パス）と、body の id / staff_code が一致するレコードのみ削除。
+    office_id と staff_id が一致するレコードを削除。
     """
     try:
         target = (
             db.query(Staffs)
             .filter(
                 Staffs.office_id == office_id,
-                Staffs.id == payload.id,
-                Staffs.staff_code == payload.staff_code,
+                Staffs.id == staff_id,
             )
             .first()
         )
