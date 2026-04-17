@@ -65,7 +65,7 @@ const OfficesPage = () => {
     };
   }, [theme]);
   const [addManager, setAddManager] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
   const [staffForm, setStaffForm] = useState({
     login_id: "",
     password: "",

@@ -28,6 +28,7 @@ class StaffCreate(BaseModel):
 class StaffResponse(BaseModel):
     id: int
     name: str
+    login_id: str
     staff_code: Optional[str]
     is_active: bool
     is_admin: bool

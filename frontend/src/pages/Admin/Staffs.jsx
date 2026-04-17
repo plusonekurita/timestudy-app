@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { apiFetch } from "../../utils/api";
 import { showSnackbar } from "../../store/slices/snackbarSlice";
 import { performLogout } from "../../utils/auth";
-import { Home, Dashboard, PersonAddAlt1, Logout, AddBusiness, LightMode, DarkMode } from "@mui/icons-material";
+import { Home, Dashboard, PersonAddAlt1, Logout, AddBusiness, LightMode, DarkMode, Visibility, VisibilityOff } from "@mui/icons-material";
 import "./style.scss";
 
 const StaffsPage = () => {
@@ -42,6 +42,8 @@ const StaffsPage = () => {
   }, [theme]);
   const [showEdit, setShowEdit] = useState(false);
   const [edit, setEdit] = useState(null);
+  const [showPassword, setShowPassword] = useState(true);
+  const [showEditPassword, setShowEditPassword] = useState(true);
 
   const [form, setForm] = useState({
     office_id: "",
@@ -210,7 +212,12 @@ const StaffsPage = () => {
                 </label>
                 <label>
                   パスワード（必須）
-                  <input type="password" placeholder="半角英数8文字以上" pattern="[A-Za-z0-9]{8,}" minLength={8} required value={form.password} onChange={(e)=>setForm({ ...form, password: e.target.value })} />
+                  <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                    <input type={showPassword ? "text" : "password"} placeholder="半角英数8文字以上" pattern="[A-Za-z0-9]{8,}" minLength={8} required value={form.password} onChange={(e)=>setForm({ ...form, password: e.target.value })} style={{ flex: 1, paddingRight: "40px" }} />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: "8px", background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center", color: "inherit" }} aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}>
+                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                    </button>
+                  </div>
                 </label>
                 <label>
                   氏名（必須）
@@ -284,11 +291,16 @@ const StaffsPage = () => {
                 <div className="staff-grid">
                   <label>
                     ログインID（変更不可）
-                    <input type="text" value={edit.login_id || ""} readOnly />
+                    <input type="text" value={edit.login_id || ""} readOnly disabled />
                   </label>
                   <label>
                     パスワード（変更時のみ）
-                    <input type="password" placeholder="半角英数8文字以上" pattern="[A-Za-z0-9]{8,}" minLength={8} value={edit.password || ""} onChange={(e)=>setEdit({ ...edit, password: e.target.value })} />
+                    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                      <input type={showEditPassword ? "text" : "password"} placeholder="半角英数8文字以上" pattern="[A-Za-z0-9]{8,}" minLength={8} value={edit.password || ""} onChange={(e)=>setEdit({ ...edit, password: e.target.value })} style={{ flex: 1, paddingRight: "40px" }} />
+                      <button type="button" onClick={() => setShowEditPassword(!showEditPassword)} style={{ position: "absolute", right: "8px", background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center", color: "inherit" }} aria-label={showEditPassword ? "パスワードを隠す" : "パスワードを表示"}>
+                        {showEditPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      </button>
+                    </div>
                   </label>
                   <label>
                     職員コード
